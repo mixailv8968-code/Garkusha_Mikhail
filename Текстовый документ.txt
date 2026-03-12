@@ -1,0 +1,783 @@
+Сделай так что бы стрелки прокручивающие карусель были по середине высоты карусели, и при скроле не уезжали вниз
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бесконечная карусель – два блока друг над другом</title>
+    <style>
+        /* ========== ОБЩИЕ СБРОСЫ И ПЕРЕМЕННЫЕ ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --carousel-height: 600px;
+            --carousel-top: 70px;
+            --left-strip-width: 50px;
+            --left-strip-color: rgb(255, 255, 255);
+            --strip-width: 120px;
+            --strip-color: rgb(255, 255, 255);
+            --strip-secondary-width: 100px;
+            --strip-secondary-color: rgb(255, 255, 255);
+            --strip-secondary-right-offset: 0px;
+            --text-block-width: 800px;
+            --sub-text-max-width: 250px;
+        }
+
+        body {
+            background-color: #ffffff;
+            font-family: 'Calibri', sans-serif;
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* ========== КАРУСЕЛЬ ========== */
+        .carousel-container {
+            margin-top: var(--carousel-top);
+            margin-left: var(--left-strip-width);
+            width: calc(100% - var(--left-strip-width) - var(--strip-width));
+            overflow: hidden;
+            position: relative;
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 20px;
+            transition: transform 0.4s ease;
+            will-change: transform;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .carousel-track.dragging {
+            transition: none;
+            cursor: grabbing;
+        }
+
+        .carousel-slide {
+            flex: 0 0 800px;
+            height: var(--carousel-height);
+            overflow: hidden;
+            transition: opacity 0.3s;
+            cursor: pointer;
+            background-color: #fff;
+            border: 1px solid rgb(255, 255, 255);
+            border-radius: 8px;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide:not(.active) {
+            opacity: 0.3;
+        }
+
+        /* ========== КНОПКИ НАВИГАЦИИ (фиксированные) ========== */
+        .carousel-btn {
+            position: fixed;
+            top: calc(var(--carousel-top) + var(--carousel-height) / 2);
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 48px;
+            font-weight: 300;
+            font-family: 'Calibri', sans-serif;
+            color: #333333;
+            transition: transform 0.2s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 10px;
+        }
+
+        .carousel-btn.prev {
+            left: calc(var(--left-strip-width) + 10px);
+            right: auto;
+        }
+
+        .carousel-btn.next {
+            right: calc(var(--strip-width) + 10px);
+            left: auto;
+        }
+
+        .carousel-btn:hover {
+            transform: translateY(-50%) scale(1.4);
+            color: #000;
+        }
+
+        /* ========== ПОЛОСЫ (фиксированные) ========== */
+        .left-strip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--left-strip-width);
+            height: 100vh;
+            background-color: var(--left-strip-color);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .vertical-strip {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: var(--strip-width);
+            height: 100vh;
+            background-color: var(--strip-color);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .vertical-strip-secondary {
+            position: fixed;
+            top: 0;
+            right: var(--strip-secondary-right-offset);
+            width: var(--strip-secondary-width);
+            height: 100vh;
+            background-color: var(--strip-secondary-color);
+            pointer-events: auto;
+            z-index: 15;
+            transition: transform 0.3s ease;
+            transform-origin: right center;
+            border-left: 1px solid black;
+        }
+
+        .vertical-strip-secondary:hover,
+        .vertical-strip-secondary.hover {
+            transform: scaleX(2);
+            z-index: 25;
+        }
+
+        /* ========== КОНТЕЙНЕР ДЛЯ ДВУХ БЛОКОВ ДРУГ НАД ДРУГОМ ========== */
+        .text-blocks-stack-wrapper {
+            margin-left: var(--left-strip-width);
+            margin-right: var(--strip-width);
+            margin-top: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .text-blocks-stack {
+            width: var(--text-block-width);
+            position: relative;
+        }
+
+        .text-block {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+            /* РАДИКАЛЬНЫЕ НАСТРОЙКИ ПЕРЕНОСА */
+            white-space: normal !important;          /* принудительно разрешаем перенос */
+            overflow-wrap: break-word !important;    /* перенос длинных слов */
+            word-wrap: break-word !important;        /* для старых браузеров */
+            word-break: break-word !important;       /* ещё один способ */
+            hyphens: auto;                            /* расстановка переносов (для поддержки) */
+            /* ВРЕМЕННЫЕ РАМКИ ДЛЯ ОТЛАДКИ (потом убрать) */
+            border: 2px solid rgb(255, 255, 255);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
+        }
+
+        .text-block p {
+            margin-bottom: 1em;
+        }
+
+        .text-block p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Нижний блок (первый) – в потоке, задаёт высоту */
+        .text-block-base {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Верхний блок (второй) – абсолютно позиционирован поверх */
+        .text-block-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            background-color: transparent;
+            text-align: right;
+        }
+
+        /* ========== БУКВА М (фиксированная) ========== */
+        .letter-m {
+            position: fixed;
+            right: calc(var(--strip-secondary-right-offset) - 10px);
+            top: 30px;
+            font-size: 108px;
+            font-family: 'Calibri', sans-serif;
+            color: #333;
+            z-index: 30;
+            line-height: 1;
+            font-weight: 300;
+            text-decoration: none;
+            cursor: pointer;
+            transition: font-size 0.2s ease, transform 0.2s ease, color 0.2s ease;
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 0px;
+        }
+
+        .letter-m.extra-letters::before,
+        .letter-m.extra-letters::after {
+            transform: translateY(-16px);
+        }
+
+        .letter-m:hover {
+            color: #666;
+            font-size: 118px;
+            transform: translateY(-2px);
+        }
+
+        .letter-m::before,
+        .letter-m::after {
+            content: "";
+            font-size: 18px;
+            font-weight: 300;
+            color: inherit;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: pre;
+        }
+
+        .letter-m::before {
+            content: "ho ";
+        }
+
+        .letter-m::after {
+            content: " e";
+        }
+
+        .letter-m.extra-letters::before,
+        .letter-m.extra-letters::after {
+            opacity: 1;
+        }
+
+        .letter-m.extra-letters {
+            transform: translateX(-20px);
+        }
+
+        .letter-m.extra-letters:hover {
+            transform: translateY(-2px) translateX(-20px);
+        }
+
+        /* ========== БЛОК С ПРОЕКТАМИ (фиксированный) ========== */
+        .letter-sub {
+            position: fixed;
+            right: calc(var(--strip-secondary-right-offset) + 10px);
+            top: 50%;
+            z-index: 31;
+            max-width: calc(var(--sub-text-max-width) - 170px);
+            transition: max-width 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .letter-sub.expanded {
+            max-width: 170px;
+        }
+
+        .letter-sub-line {
+            display: block;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 300;
+            color: #333;
+            text-align: left;
+            text-decoration: none;
+            margin-bottom: 15px;
+            cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+            transition: font-size 0.2s ease, transform 0.2s ease;
+        }
+
+        .letter-sub-line:hover {
+            font-size: 20px;
+            transform: translateY(-2px);
+        }
+
+        .letter-sub-line.bold {
+            font-weight: 700;
+        }
+
+        .scroll-text {
+            display: inline-block;
+            white-space: nowrap;
+            transition: transform 0s;
+            will-change: transform;
+        }
+
+        /* ========== КНОПКА ПЕРЕХОДА К СЛЕДУЮЩЕМУ ПРОЕКТУ ========== */
+        .next-project-button {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, background-color 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+        }
+
+        .next-project-button:hover {
+            background-color: #555;
+        }
+
+        .next-project-button.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ========== ОВЕРЛЕЙ ========== */
+        .image-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .image-overlay img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 900px) {
+            .carousel-slide {
+                flex-basis: 90vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Карусель в потоке -->
+    <div class="carousel-container">
+        <div class="carousel-track" id="carouselTrack">
+            <div class="carousel-slide"><img src="Горнолыжный курорт/1770564804396-9rmkrdp5qz8.png" alt=""></div>
+            <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт.jpg" alt=""></div>
+            <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт2.jpg" alt=""></div>
+            <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт3.1.png" alt=""></div>
+            <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт3.12.jpg" alt=""></div>
+            <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт4.jpg" alt=""></div>
+            <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт5.jpg" alt=""></div>
+        </div>
+        <button class="carousel-btn prev" id="prevBtn"><</button>
+        <button class="carousel-btn next" id="nextBtn">></button>
+    </div>
+
+    <!-- Фиксированные полосы -->
+    <div class="left-strip"></div>
+    <div class="vertical-strip"></div>
+    <div class="vertical-strip-secondary"></div>
+
+    <!-- Буква М (фиксированная) -->
+    <a href="CV.html" class="letter-m">М</a>
+
+    <!-- Блок проектов (фиксированный) -->
+    <div class="letter-sub">
+        <a href="https://example.com/page1" class="letter-sub-line">
+            <span class="scroll-text">Практикум Древолюция</span>
+        </a>
+        <a href="https://example.com/page2" class="letter-sub-line">
+            <span class="scroll-text">Театр</span>
+        </a>
+        <a href="\Горнолыжный курорт.html" class="letter-sub-line bold">
+            <span class="scroll-text">Горнолыжный курорт</span>
+        </a>
+        <a href="https://example.com/page4" class="letter-sub-line">
+            <span class="scroll-text">Разработанные программы в Rhino + Grasshopper</span>
+        </a>
+    </div>
+
+    <!-- Два текстовых блока – один над другим -->
+    <div class="text-blocks-stack-wrapper">
+        <div class="text-blocks-stack">
+            <!-- Нижний блок (основной, текст прижат к левому краю) -->
+            <div class="text-block text-block-base">
+                <p>Горнолыжный курорт.</p>
+                </p><br></p>
+                </p><br></p>
+                <p>Расположен на горах Кавказа в поселке Архыз, на 2х сторонах ущелья – южной и северной. На данный момент протяженность трасс составляет 27 км. С 2015 года этот курорт активно развивается. Тогда была заложена новая территория для курорта, ее назвали «Лунная поляна». На данный момент там уже проложена дорога и построена гостиница «Moon 2». Мой участок расположен на южном склоне. Его с трех сторон обрамляет дорога, а с четвертой – лыжная трасса и Moon 2. Эти уже существующие ориентиры и послужили частичным решением зонирования моего участка и общей стилистике курорта.</p>
+                <p>Мой участок имеет перепад 20 метров с севера на юг. Он имеет несколько разноуровневых террас. Внутри них расположены технические помещения, парковки, а со стороны площадей там размещены магазины, кафе и пункты проката оборудования. Гостиницы расположены вдоль дороги и повернуты для наибольшего количества красивых видов из окон номеров. Во всех гостиницах есть рестораны/кафе, пункты хранения и проката оборудования. Мой участок зонирован так, чтобы в каждой гостинице была система ski in / ski out. Для этого запроектированы пандусы и мосты через дорогу.</p>
+                <p>Вечером, вместе с заходом солнца, в 16:00 перестают работать канатные дороги (летом они работают дольше); вечернее катание есть только на двух трассах по пятницам и субботам. Начинается вечерняя жизнь, уже без лыжников. Основной культурный центр моего курорта сосредоточен под красной оболочкой. Там расположены кафе, магазины, вход на ледовую арену (которая летом может быть переоборудована в байк‑парк), зрительный зал, вход на трибуну. Зимой оболочка закрывает от большого количества осадков, летом – от палящего солнца.</p>
+                <p>Таким образом, на курорте есть две шумных зоны. Одна – справа, зона отдыха для лыжников, ее активный период с 7 до 18; и вторая зона под оболочкой, активный период с 18 до 3.</p>
+                <p>На моем участке 6 гостиниц, расположенных на разных уровнях. По своей структуре они похожи. Это террасированные дома с большим атриумом почти во всю высоту здания.</p>
+            </div>
+            <!-- Верхний блок (накладывается поверх, текст прижат к правому краю) -->
+            <div class="text-block text-block-overlay">
+                <p>Дипломный проект 2025</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка для перехода к следующему проекту -->
+    <div class="next-project-button" id="nextProjectBtn">Следующий проект ></div>
+
+    <!-- Оверлей для увеличенного просмотра -->
+    <div class="image-overlay" id="imageOverlay">
+        <img src="" alt="">
+    </div>
+
+    <script>
+        // ========== НАСТРОЙКИ ==========
+        const SCROLL_SPEED = 50;
+        const SCROLL_DELAY = 300;
+        const EXTRA_DISTANCE = 0.1;
+        const SCROLL_THRESHOLD = 20;
+
+        function initScrollOnHover() {
+            const lines = document.querySelectorAll('.letter-sub-line');
+            lines.forEach(line => {
+                const textSpan = line.querySelector('.scroll-text');
+                if (!textSpan) return;
+
+                let isHovered = false;
+                let scrollTimer = null;
+
+                function startScroll() {
+                    if (isHovered) return;
+                    isHovered = true;
+
+                    textSpan.style.transition = 'none';
+                    textSpan.style.transform = '';
+
+                    scrollTimer = setTimeout(() => {
+                        if (!isHovered) return;
+                        const containerWidth = line.offsetWidth;
+                        const textWidth = textSpan.offsetWidth;
+                        if (textWidth <= containerWidth) {
+                            isHovered = false;
+                            return;
+                        }
+                        let scrollDistance = textWidth - containerWidth;
+                        scrollDistance = scrollDistance * (1 + EXTRA_DISTANCE);
+                        const duration = scrollDistance / SCROLL_SPEED;
+                        textSpan.style.transition = `transform ${duration}s ease`;
+                        textSpan.style.transform = `translateX(-${scrollDistance}px)`;
+                    }, SCROLL_DELAY);
+                }
+
+                function resetScroll() {
+                    if (scrollTimer) {
+                        clearTimeout(scrollTimer);
+                        scrollTimer = null;
+                    }
+                    if (!isHovered) return;
+                    isHovered = false;
+
+                    const currentTransform = textSpan.style.transform;
+                    let currentShift = 0;
+                    if (currentTransform) {
+                        const match = currentTransform.match(/translateX\(-([\d.]+)px\)/);
+                        if (match) currentShift = parseFloat(match[1]);
+                    }
+                    if (currentShift > 0) {
+                        const duration = currentShift / SCROLL_SPEED;
+                        textSpan.style.transition = `transform ${duration}s ease`;
+                        textSpan.style.transform = `translateX(0)`;
+                    } else {
+                        textSpan.style.transition = '';
+                        textSpan.style.transform = '';
+                    }
+                }
+
+                line.addEventListener('mouseenter', startScroll);
+                line.addEventListener('mouseleave', resetScroll);
+
+                window.addEventListener('resize', () => {
+                    if (!isHovered) {
+                        textSpan.style.transition = '';
+                        textSpan.style.transform = '';
+                    } else {
+                        textSpan.style.transition = '';
+                        textSpan.style.transform = '';
+                        isHovered = false;
+                        if (scrollTimer) clearTimeout(scrollTimer);
+                        startScroll();
+                    }
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initScrollOnHover);
+        } else {
+            initScrollOnHover();
+        }
+
+        // ========== КОД БЕСКОНЕЧНОЙ КАРУСЕЛИ ==========
+        (function() {
+            const track = document.getElementById('carouselTrack');
+            const originalSlides = Array.from(document.querySelectorAll('.carousel-slide'));
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const overlay = document.getElementById('imageOverlay');
+            const overlayImg = overlay.querySelector('img');
+
+            if (!originalSlides.length) return;
+
+            const firstClone = originalSlides[0].cloneNode(true);
+            const lastClone = originalSlides[originalSlides.length - 1].cloneNode(true);
+            track.insertBefore(lastClone, originalSlides[0]);
+            track.appendChild(firstClone);
+
+            const allSlides = document.querySelectorAll('.carousel-slide');
+            const totalSlides = allSlides.length;
+            let currentIndex = 1;
+            let slideWidth, gap, containerWidth, step;
+            let isDragging = false;
+            let startX = 0;
+            let currentTranslate = 0;
+            let startTranslate = 0;
+            let dragStartTime = 0;
+            let dragHappened = false;
+            const DRAG_THRESHOLD = 5;
+
+            function updateMeasurements() {
+                slideWidth = allSlides[0].offsetWidth;
+                gap = parseFloat(getComputedStyle(track).gap) || 0;
+                containerWidth = document.querySelector('.carousel-container').offsetWidth;
+                step = slideWidth + gap;
+            }
+
+            function getOffsetForIndex(index) {
+                const slideLeft = index * step;
+                return (containerWidth / 2) - (slideLeft + slideWidth / 2);
+            }
+
+            function updatePosition(animate = true) {
+                if (!animate) {
+                    track.style.transition = 'none';
+                } else {
+                    track.style.transition = 'transform 0.4s ease';
+                }
+                const offset = getOffsetForIndex(currentIndex);
+                track.style.transform = `translateX(${offset}px)`;
+                currentTranslate = offset;
+                allSlides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === currentIndex);
+                });
+                if (!animate) {
+                    track.offsetHeight;
+                    track.style.transition = 'transform 0.4s ease';
+                }
+            }
+
+            function goToSlide(newIndex, animated = true) {
+                if (newIndex < 0 || newIndex >= totalSlides) return;
+                currentIndex = newIndex;
+                updatePosition(animated);
+                handleInfinite();
+            }
+
+            function handleInfinite() {
+                if (currentIndex === 0) {
+                    setTimeout(() => {
+                        currentIndex = totalSlides - 2;
+                        updatePosition(false);
+                    }, 400);
+                } else if (currentIndex === totalSlides - 1) {
+                    setTimeout(() => {
+                        currentIndex = 1;
+                        updatePosition(false);
+                    }, 400);
+                }
+            }
+
+            function onDragStart(e) {
+                e.preventDefault();
+                startX = e.type === 'mousedown' ? e.pageX : e.touches[0].pageX;
+                isDragging = true;
+                dragHappened = false;
+                track.classList.add('dragging');
+                dragStartTime = Date.now();
+                startTranslate = currentTranslate;
+                track.style.transition = 'none';
+            }
+
+            function onDragMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                const currentX = e.type === 'mousemove' ? e.pageX : e.touches[0].pageX;
+                const deltaX = currentX - startX;
+                const newTranslate = startTranslate + deltaX;
+                track.style.transform = `translateX(${newTranslate}px)`;
+                currentTranslate = newTranslate;
+
+                if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+                    dragHappened = true;
+                }
+            }
+
+            function onDragEnd(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                track.classList.remove('dragging');
+                const dragTime = Date.now() - dragStartTime;
+                const distance = currentTranslate - startTranslate;
+                const speed = Math.abs(distance) / dragTime;
+                const threshold = slideWidth * 0.3;
+                let deltaIndex = 0;
+                if (Math.abs(distance) > threshold) {
+                    deltaIndex = distance > 0 ? -1 : 1;
+                } else if (speed > 0.5) {
+                    deltaIndex = distance > 0 ? -1 : 1;
+                }
+                let newIndex = currentIndex + deltaIndex;
+                if (newIndex < 0) newIndex = 0;
+                if (newIndex >= totalSlides) newIndex = totalSlides - 1;
+                goToSlide(newIndex, true);
+
+                setTimeout(() => {
+                    dragHappened = false;
+                }, 200);
+            }
+
+            track.addEventListener('mousedown', onDragStart);
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+
+            track.addEventListener('touchstart', onDragStart);
+            window.addEventListener('touchmove', onDragMove, { passive: false });
+            window.addEventListener('touchend', onDragEnd);
+
+            prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
+            nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
+
+            window.addEventListener('resize', () => {
+                updateMeasurements();
+                updatePosition(false);
+            });
+
+            updateMeasurements();
+            updatePosition(false);
+
+            track.addEventListener('click', (e) => {
+                if (dragHappened) return;
+                const slide = e.target.closest('.carousel-slide');
+                if (!slide) return;
+                const img = slide.querySelector('img');
+                if (!img) return;
+                overlayImg.src = img.src;
+                overlay.style.display = 'flex';
+            });
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay || e.target === overlayImg) {
+                    overlay.style.display = 'none';
+                }
+            });
+        })();
+
+        (function() {
+            const strip = document.querySelector('.vertical-strip-secondary');
+            const mLink = document.querySelector('.letter-m');
+            const subContainer = document.querySelector('.letter-sub');
+
+            if (!strip || !mLink || !subContainer) return;
+
+            function addEffects() {
+                strip.classList.add('hover');
+                subContainer.classList.add('expanded');
+                mLink.classList.add('extra-letters');
+            }
+
+            function removeEffects() {
+                strip.classList.remove('hover');
+                subContainer.classList.remove('expanded');
+                mLink.classList.remove('extra-letters');
+            }
+
+            strip.addEventListener('mouseenter', addEffects);
+            strip.addEventListener('mouseleave', removeEffects);
+            mLink.addEventListener('mouseenter', addEffects);
+            mLink.addEventListener('mouseleave', removeEffects);
+            subContainer.addEventListener('mouseenter', addEffects);
+            subContainer.addEventListener('mouseleave', removeEffects);
+        })();
+
+        const nextBtn = document.getElementById('nextProjectBtn');
+        let targetUrl = '#';
+
+        function updateTargetUrl() {
+            const links = document.querySelectorAll('.letter-sub-line');
+            if (links.length === 0) return;
+            let boldIndex = -1;
+            for (let i = 0; i < links.length; i++) {
+                if (links[i].classList.contains('bold')) {
+                    boldIndex = i;
+                    break;
+                }
+            }
+            if (boldIndex !== -1 && boldIndex + 1 < links.length) {
+                const nextLink = links[boldIndex + 1];
+                if (nextLink.href && nextLink.href !== '#') {
+                    targetUrl = nextLink.href;
+                }
+            }
+        }
+        updateTargetUrl();
+
+        window.addEventListener('scroll', function() {
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - SCROLL_THRESHOLD) {
+                nextBtn.classList.add('visible');
+            } else {
+                nextBtn.classList.remove('visible');
+            }
+        });
+
+        nextBtn.addEventListener('click', function() {
+            if (targetUrl && targetUrl !== '#') {
+                window.location.href = targetUrl;
+            }
+        });
+    </script>
+</body>
+</html>

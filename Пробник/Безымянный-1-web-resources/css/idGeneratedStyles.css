@@ -1,0 +1,111 @@
+body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote {
+	margin:0;
+	padding:0;
+	border-width:0;
+}
+body {
+	-epub-hyphens:auto;
+}
+div.Графический-фрейм {
+	border-color:#000000;
+	border-width:1px;
+	border-style:solid;
+}
+div.Текстовый-фрейм {
+	border-style:solid;
+}
+p.основной-абзац {
+	color:#000000;
+	font-family:"Minion Pro", serif;
+	font-size:12px;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:normal;
+	line-height:1.2;
+	margin-bottom:0;
+	margin-left:0;
+	margin-right:0;
+	margin-top:0;
+	orphans:1;
+	page-break-after:auto;
+	page-break-before:auto;
+	text-align:left;
+	text-decoration:none;
+	text-indent:0;
+	text-transform:none;
+	widows:1;
+}
+p.ParaOverride-1 {
+	text-align:right;
+}
+span.CharOverride-1 {
+	font-family:"Poiret One", sans-serif;
+	font-size:23px;
+	font-style:normal;
+	font-weight:normal;
+}
+span.CharOverride-2 {
+	color:#0077bc;
+	font-family:"Calibri Light", sans-serif;
+	font-size:15px;
+	font-style:normal;
+	font-weight:300;
+}
+span.CharOverride-3 {
+	color:#7f7f7f;
+	font-family:"Calibri Light", sans-serif;
+	font-size:15px;
+	font-style:normal;
+	font-weight:300;
+}
+span.CharOverride-4 {
+	font-family:"Poiret One", sans-serif;
+	font-size:62px;
+	font-style:normal;
+	font-weight:normal;
+}
+#_idContainer001 {
+	display:inline-block;
+	height:213px;
+	width:178px;
+}
+#_idContainer004 {
+	display:inline-block;
+	height:0px;
+	position:relative;
+	width:134px;
+}
+#_idContainer009 {
+	display:inline-block;
+	height:79px;
+	width:123px;
+}
+#_idContainer010 {
+	display:inline-block;
+	height:0px;
+	position:relative;
+	width:111px;
+}
+#_idContainer014, #_idContainer017 {
+	display:inline-block;
+	height:0px;
+	position:relative;
+	width:79px;
+}
+#_idContainer018, #_idContainer019, #_idContainer020 {
+	display:inline-block;
+	height:17px;
+	width:13px;
+}
+img._idGenObjectAttribute-1 {
+	height:100.00%;
+	min-width:100%;
+	width:100.00%;
+}
+div._idGenObjectStyleOverride-1 {
+	background-color:#ffffff;
+	border-color:#646464;
+}
+div._idGenObjectLayout-1 {
+	text-align:center;
+}

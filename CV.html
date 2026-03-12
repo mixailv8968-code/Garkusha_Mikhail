@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV (контакты с эффектом и копированием)</title>
+    <style>
+        :root {
+            --top-offset: 60vh;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        .image-block {
+            position: absolute;
+            left: 70px;
+            top: 70px;
+            display: block;
+        }
+        .image-block img {
+            display: block;
+            height: 380px;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .blocks-row {
+            position: absolute;
+            left: 230px;
+            right: 5vw;
+            top: var(--top-offset);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .block-item {
+            max-width: 90vw;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #333333c1;
+            margin: 0;
+            padding: 8px 12px;
+            max-height: 1200px;
+            box-sizing: border-box;
+            scrollbar-color: #888 #f0f0f0;
+        }
+
+        .text-line {
+            white-space: nowrap;
+            text-align: right;
+            width: 100%;
+        }
+
+        .text-line.heading {
+            font-size: 24px;
+            margin-bottom: 0.75em;
+            text-decoration: underline;
+            text-underline-offset: 5px;
+            text-decoration-thickness: 1px;
+            text-decoration-color: #888;
+        }
+
+        /* Тултипы – курсор стандартный */
+        .tooltip-trigger {
+            position: relative;
+            cursor: default;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            transform: translateY(-5px);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 10;
+            white-space: pre-line;
+            word-wrap: break-word;
+            width: max-content;
+            max-width: 90vw;
+        }
+        .tooltip-text::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 10px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent;
+        }
+        .tooltip-trigger:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Стили для ссылок‑проектов */
+        .project-link {
+            display: block;
+            white-space: nowrap;
+            text-align: right;
+            width: 100%;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            transition: font-size 0.2s ease, transform 0.2s ease;
+            font-size: 18px;
+            transform: translateY(0);
+        }
+
+        .project-link:hover {
+            font-size: 20px;
+            transform: translateY(-3px);
+            z-index: 100;
+        }
+
+        /* Контактный блок */
+        .contact-block {
+            position: absolute;
+            left: 196px; /* как у образования */
+            top: 50vh;
+            right: auto;
+            transform: none;
+        }
+
+        /* Стили для строк контактов – такой же эффект, как у проектов */
+        .contact-line {
+            white-space: nowrap;
+            text-align: right;
+            width: 100%;
+            cursor: pointer; /* указатель, чтобы показать кликабельность */
+            transition: font-size 0.2s ease, transform 0.2s ease;
+            font-size: 18px;
+            transform: translateY(0);
+        }
+
+        .contact-line:hover {
+            font-size: 20px;
+            transform: translateY(-3px);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Контактный блок с двумя строками -->
+    <div class="contact-block">
+        <div class="text-content">
+            <div class="contact-line">89688673903</div>
+            <div class="contact-line">mixailv8968@gmail.com</div>
+        </div>
+    </div>
+
+    <!-- Контейнер с четырьмя блоками -->
+    <div class="blocks-row">
+        <div class="block-item">
+            <div class="text-content">
+                <div class="text-line heading">Образование:</div>
+                <div class="text-line tooltip-trigger" > 
+                    МКАГ 2018-2021
+                    <span class="tooltip-text" >Московский колледж 
+                        архитектуры и градостроительства</span>
+                </div>
+                <div class="text-line tooltip-trigger">
+                    МАРХИ 2020-2025
+                    <span class="tooltip-text">Московский архитектурный институт</span>
+                </div>
+            </div>
+        </div>
+        <div class="block-item">
+            <div class="text-content">
+                <div class="text-line heading">Программы:</div>
+                <div class="text-line">Revit</div>
+                <div class="text-line">Archicad</div>
+                <div class="text-line">Photoshop</div>
+                <div class="text-line">Indesign</div>
+                <div class="text-line">Rhino + Grasshopper</div>
+            </div>
+        </div>
+        <div class="block-item">
+            <div class="text-content">
+                <div class="text-line heading">Участие:</div>
+                <div class="text-line tooltip-trigger">
+                    Открытая Мастерская
+                    <span class="tooltip-text">Участие в архитектурной мастерской</span>
+                </div>
+                <div class="text-line tooltip-trigger">
+                    Руководитель Тех Мархи
+                    <span class="tooltip-text">Руководство отделом студенческого совета МАРХИ</span>
+                </div>
+                <div class="text-line tooltip-trigger">
+                    Участник Драмм Мархи
+                    <span class="tooltip-text">Актёр и сценограф студенческого театра МАРХИ</span>
+                </div>
+            </div>
+        </div>
+        <div class="block-item">
+            <div class="text-content" style=" color: #000000;">
+                <div class="text-line heading">Проекты:</div>
+                <a href="Практикум Древолюзия.html" class="project-link">Практикум Древолюция</a>
+                <a href="Театр.html" class="project-link">Театр</a>
+                <a href="Горнолыжный курорт.html" class="project-link">Горнолыжный курорт</a>
+                <a href="Плагин.html" class="project-link">Плагин для Rhino + Grasshopper</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок имени -->
+    <div style="position: absolute; right: 5vw; top: 80px; transform: none; margin: 0; padding: 0;">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; font-family: 'Calibri', sans-serif;">
+            <div style="font-size: 108px; color: #333333ce; line-height: 1.2; font-weight: 300; white-space: nowrap;">Гаркуша</div>
+            <div style="font-size: 108px; color: #333333ce; line-height: 1.2; font-weight: 300; white-space: nowrap;">Михаил</div>
+            <div style="font-size: 108px; color: #333333ce; line-height: 1.2; font-weight: 300; white-space: nowrap;">Викторович</div>
+        </div>
+    </div>
+
+    <!-- Картинка -->
+    <div class="image-block">
+        <img src="me.JPG" alt="Моё фото">
+    </div>
+
+    <!-- Скрипт для копирования текста при клике -->
+    <script>
+        document.querySelectorAll('.contact-line').forEach(line => {
+            line.addEventListener('click', function() {
+                const textToCopy = this.innerText; // получаем текст строки
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    // Небольшая обратная связь (можно уведомление)
+                    alert('Скопировано: ' + textToCopy);
+                }).catch(err => {
+                    console.error('Ошибка копирования: ', err);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
