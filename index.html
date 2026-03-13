@@ -5,68 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мой сайт — картинка по центру</title>
     <style>
-        /* Убираем все отступы на body и html, чтобы ничего не мешало */
         html, body {
             margin: 0;
             padding: 0;
-            height: 100%; /* Обеспечиваем полную высоту */
+            height: 100%;
         }
 
-        /* Само body — это гибкий контейнер, который центрирует своё содержимое */
         body {
             display: flex;
-            align-items: center;     /* Вертикальное центрирование */
-            justify-content: center; /* Горизонтальное центрирование */
-            background-color: #ffffff; /* Цвет фона на случай, если картинка не загрузится или останутся поля */
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
         }
 
-        /* Контейнер для картинки — занимает всю ширину, но оставляет возможность центрировать само изображение */
         .image-wrapper {
-            width: 100%; /* Растягиваем на всю ширину окна */
-            text-align: center; /* Горизонтальное выравнивание содержимого (для надёжности) */
+            width: 100%;
+            text-align: center;
         }
 
-        /* Сама картинка */
         .image-wrapper img {
-            display: block;     /* Убирает лишнее пространство снизу */
-            width: 100%;        /* Ширина = 100% родительского контейнера (то есть всего экрана) */
-            height: auto;       /* Высота подбирается автоматически, сохраняя пропорции */
-            max-width: 100%;    /* Страховка, чтобы не вылезти за границы */
-            margin: 0 auto;     /* Дополнительное центрирование, если вдруг */
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .signature {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            color: #333;
+            font-weight: 300;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .press-message {
+            position: fixed;
+            bottom: 15%;        /* 75% от верха */
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Calibri', sans-serif;
+            font-size: 108px;
+            color: #333333bd;
+            font-weight: 300;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .press-message.show {
+            opacity: 1;
         }
     </style>
 </head>
 <body>
     <div class="image-wrapper">
-        <!-- 
-            ⚠️ ВАЖНО: замени путь на свою картинку!
-            Пример: если у тебя в папке "images" лежит файл "foto.jpg", 
-            напиши src="images/foto.jpg"
-        -->
-        <img src="IMG_7835.png"alt="Центрированная картинка">
-
-        <!-- Для теста, если пока нет своей картинки, можешь раскомментировать строчку ниже
-             и закомментировать верхнюю, чтобы увидеть, как работает центрирование. -->
-        <!-- <img src="https://via.placeholder.com/1200x600/3498db/ffffff?text=Моя+картинка" alt="Тестовая картинка"> -->
+        <img src="IMG_7835.png" alt="Центрированная картинка">
     </div>
 
-    
-    <script>
-        // Когда пользователь кликает в любом месте страницы...
-        document.addEventListener('click', function() {
-            // --- ВЫБЕРИ ОДИН ИЗ ВАРИАНТОВ (раскомментируй нужный) ---
+    <div class="signature">Портфолио. Гаркуша Михаил.</div>
+    <div class="press-message" id="pressMessage">Press</div>
 
-            // Вариант 1: Переход в ЭТОЙ же вкладке (замени 'newpage.html' на свой адрес)
-            window.location.href = 'CV.html'; 
+    <script>
+        // Переход на CV при клике
+        document.addEventListener('click', function() {
+            window.location.href = 'CV.html';
         });
 
+        // Показать надпись через 3 секунды
+        setTimeout(function() {
+            document.getElementById('pressMessage').classList.add('show');
+        }, 3000);
     </script>
 </body>
 </html>
-
-
-
-
-
-
-

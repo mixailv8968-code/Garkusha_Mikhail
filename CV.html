@@ -136,18 +136,18 @@
         /* Контактный блок */
         .contact-block {
             position: absolute;
-            left: 196px; /* как у образования */
+            left: 196px;
             top: 50vh;
             right: auto;
             transform: none;
         }
 
-        /* Стили для строк контактов – такой же эффект, как у проектов */
+        /* Стили для строк контактов */
         .contact-line {
             white-space: nowrap;
             text-align: right;
             width: 100%;
-            cursor: pointer; /* указатель, чтобы показать кликабельность */
+            cursor: pointer;
             transition: font-size 0.2s ease, transform 0.2s ease;
             font-size: 18px;
             transform: translateY(0);
@@ -157,6 +157,196 @@
             font-size: 20px;
             transform: translateY(-3px);
             z-index: 100;
+        }
+
+        /* Блок имени */
+        .name-block {
+            position: absolute;
+            right: 5vw;
+            top: 80px;
+            transform: none;
+            margin: 0;
+            padding: 0;
+        }
+        .name-block .name-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-family: 'Calibri', sans-serif;
+        }
+        .name-block .name-line {
+            font-size: 108px;
+            color: #333333ce;
+            line-height: 1.2;
+            font-weight: 300;
+            white-space: nowrap;
+        }
+
+        /* ========== БЛОКИ ДЛЯ СРЕДНИХ ЭКРАНОВ ========== */
+        .medium-left-group,
+        .medium-right-group {
+            position: absolute;
+            top: var(--top-offset);
+            display: none;           /* по умолчанию скрыты */
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .medium-left-group {
+            left: 190px;               /* привязан к левому краю, как у картинки */
+            right: auto;
+        }
+
+        .medium-right-group {
+            right: 5vw;               /* привязан к правому краю */
+            left: auto;
+        }
+
+        .medium-left-group .block-item,
+        .medium-right-group .block-item {
+            max-width: none;
+        }
+
+        /* ========== ПРОМЕЖУТОЧНАЯ ВЕРСИЯ (от 769px до 1100px) ========== */
+        @media (min-width: 769px) and (max-width: 1100px) {
+            /* Показываем оба новых блока */
+            .medium-left-group,
+            .medium-right-group {
+                display: flex;
+            }
+
+            /* Скрываем все исходные блоки в .blocks-row */
+            .blocks-row .block-item {
+                display: none;
+            }
+
+            /* Уменьшаем максимальную ширину имени и шрифт */
+            .name-block {
+                max-width: 35vw;
+                top: 150px;
+            }
+            .name-block .name-line {
+                font-size: 72px;
+            }
+        }
+
+        /* ========== МОБИЛЬНАЯ ВЕРСИЯ (до 768px) ========== */
+        @media (max-width: 768px) {
+            /* Скрываем новые блоки */
+            .medium-left-group,
+            .medium-right-group {
+                display: none;
+            }
+
+            /* Сбрасываем абсолютное позиционирование у всех основных блоков */
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 20px;
+                height: auto;
+                position: static;
+            }
+
+            .image-block,
+            .contact-block,
+            .blocks-row,
+            .name-block {
+                position: static;
+                left: auto;
+                right: auto;
+                top: auto;
+                bottom: auto;
+                transform: none;
+                width: 100%;
+                max-width: 100%;
+                margin: 10px 0;
+            }
+
+            /* Все блоки получают одинаковую максимальную ширину и центрируются */
+            .image-block,
+            .name-block,
+            .contact-block,
+            .blocks-row .block-item {
+                max-width: 300px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            /* Фото */
+            .image-block {
+                order: 1;
+                text-align: center;
+            }
+            .image-block img {
+                height: auto;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            /* Имя */
+            .name-block {
+                order: 2;
+                text-align: center;
+            }
+            .name-block .name-inner {
+                align-items: flex-end;
+            }
+            .name-block .name-line {
+                font-size: 48px;
+                white-space: normal;
+                line-height: 1.1;
+                text-align: right;
+            }
+
+            /* Контакты */
+            .contact-block {
+                order: 3;
+                text-align: center;
+            }
+            .contact-block .text-content {
+                align-items: flex-end;
+            }
+            .contact-line {
+                text-align: right;
+                white-space: normal;
+            }
+
+            /* Контейнер с блоками */
+            .blocks-row {
+                order: 4;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                align-items: stretch;
+            }
+
+            /* Переопределяем порядок дочерних блоков внутри .blocks-row */
+            .block-item {
+                max-width: 100%;
+                width: 100%;
+            }
+            .block-item:nth-child(4) { order: 1; } /* Проекты */
+            .block-item:nth-child(3) { order: 2; } /* Участие */
+            .block-item:nth-child(1) { order: 3; } /* Образование */
+            .block-item:nth-child(2) { order: 4; } /* Программы */
+
+            /* Текст в блоках – по правому краю */
+            .text-content {
+                align-items: flex-end;
+                padding: 5px 10px;
+            }
+            .text-line,
+            .project-link {
+                white-space: normal;
+                text-align: right;
+            }
+
+            /* Убираем лишние абсолютные элементы, если они мешают */
+            [style*="position: absolute"] {
+                position: static !important;
+            }
         }
     </style>
 </head>
@@ -170,15 +360,14 @@
         </div>
     </div>
 
-    <!-- Контейнер с четырьмя блоками -->
+    <!-- Исходный контейнер с четырьмя блоками (будет скрыт на средних экранах) -->
     <div class="blocks-row">
         <div class="block-item">
             <div class="text-content">
                 <div class="text-line heading">Образование:</div>
-                <div class="text-line tooltip-trigger" > 
+                <div class="text-line tooltip-trigger"> 
                     МКАГ 2018-2021
-                    <span class="tooltip-text" >Московский колледж 
-                        архитектуры и градостроительства</span>
+                    <span class="tooltip-text">Московский колледж архитектуры и градостроительства</span>
                 </div>
                 <div class="text-line tooltip-trigger">
                     МАРХИ 2020-2025
@@ -214,7 +403,64 @@
             </div>
         </div>
         <div class="block-item">
-            <div class="text-content" style=" color: #000000;">
+            <div class="text-content" style="color: #000000;">
+                <div class="text-line heading">Проекты:</div>
+                <a href="Практикум Древолюзия.html" class="project-link">Практикум Древолюция</a>
+                <a href="Театр.html" class="project-link">Театр</a>
+                <a href="Горнолыжный курорт.html" class="project-link">Горнолыжный курорт</a>
+                <a href="Плагин.html" class="project-link">Плагин для Rhino + Grasshopper</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- НОВЫЙ ЛЕВЫЙ БЛОК для средних экранов: Образование, Участие, Программы -->
+    <div class="medium-left-group">
+        <div class="block-item">
+            <div class="text-content">
+                <div class="text-line heading">Образование:</div>
+                <div class="text-line tooltip-trigger"> 
+                    МКАГ 2018-2021
+                    <span class="tooltip-text">Московский колледж архитектуры и градостроительства</span>
+                </div>
+                <div class="text-line tooltip-trigger">
+                    МАРХИ 2020-2025
+                    <span class="tooltip-text">Московский архитектурный институт</span>
+                </div>
+            </div>
+        </div>
+        <div class="block-item">
+            <div class="text-content">
+                <div class="text-line heading">Участие:</div>
+                <div class="text-line tooltip-trigger">
+                    Открытая Мастерская
+                    <span class="tooltip-text">Участие в архитектурной мастерской</span>
+                </div>
+                <div class="text-line tooltip-trigger">
+                    Руководитель Тех Мархи
+                    <span class="tooltip-text">Руководство отделом студенческого совета МАРХИ</span>
+                </div>
+                <div class="text-line tooltip-trigger">
+                    Участник Драмм Мархи
+                    <span class="tooltip-text">Актёр и сценограф студенческого театра МАРХИ</span>
+                </div>
+            </div>
+        </div>
+        <div class="block-item">
+            <div class="text-content">
+                <div class="text-line heading">Программы:</div>
+                <div class="text-line">Revit</div>
+                <div class="text-line">Archicad</div>
+                <div class="text-line">Photoshop</div>
+                <div class="text-line">Indesign</div>
+                <div class="text-line">Rhino + Grasshopper</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- НОВЫЙ ПРАВЫЙ БЛОК для средних экранов: Проекты -->
+    <div class="medium-right-group">
+        <div class="block-item">
+            <div class="text-content" style="color: #000000;">
                 <div class="text-line heading">Проекты:</div>
                 <a href="Практикум Древолюзия.html" class="project-link">Практикум Древолюция</a>
                 <a href="Театр.html" class="project-link">Театр</a>
@@ -225,11 +471,11 @@
     </div>
 
     <!-- Блок имени -->
-    <div style="position: absolute; right: 5vw; top: 80px; transform: none; margin: 0; padding: 0;">
-        <div style="display: flex; flex-direction: column; align-items: flex-end; font-family: 'Calibri', sans-serif;">
-            <div style="font-size: 108px; color: #333333ce; line-height: 1.2; font-weight: 300; white-space: nowrap;">Гаркуша</div>
-            <div style="font-size: 108px; color: #333333ce; line-height: 1.2; font-weight: 300; white-space: nowrap;">Михаил</div>
-            <div style="font-size: 108px; color: #333333ce; line-height: 1.2; font-weight: 300; white-space: nowrap;">Викторович</div>
+    <div class="name-block">
+        <div class="name-inner">
+            <div class="name-line">Гаркуша</div>
+            <div class="name-line">Михаил</div>
+            <div class="name-line">Викторович</div>
         </div>
     </div>
 
@@ -238,13 +484,12 @@
         <img src="me.JPG" alt="Моё фото">
     </div>
 
-    <!-- Скрипт для копирования текста при клике -->
+    <!-- Скрипт для копирования текста -->
     <script>
         document.querySelectorAll('.contact-line').forEach(line => {
             line.addEventListener('click', function() {
-                const textToCopy = this.innerText; // получаем текст строки
+                const textToCopy = this.innerText;
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    // Небольшая обратная связь (можно уведомление)
                     alert('Скопировано: ' + textToCopy);
                 }).catch(err => {
                     console.error('Ошибка копирования: ', err);
