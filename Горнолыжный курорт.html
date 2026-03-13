@@ -84,7 +84,7 @@
             opacity: 0.3;
         }
 
-        /* ========== КНОПКИ НАВИГАЦИИ (фиксированные) ========== */
+        /* ========== КНОПКИ НАВИГАЦИИ ========== */
         .carousel-btn {
             position: absolute;
             top: 50%;
@@ -164,7 +164,7 @@
             z-index: 25;
         }
 
-        /* ========== КОНТЕЙНЕР ДЛЯ ДВУХ БЛОКОВ ДРУГ НАД ДРУГОМ ========== */
+        /* ========== ТЕКСТОВЫЙ БЛОК ПОД КАРУСЕЛЬЮ ========== */
         .text-blocks-stack-wrapper {
             margin-left: var(--left-strip-width);
             margin-right: var(--strip-width);
@@ -179,7 +179,7 @@
             position: relative;
         }
 
-       .text-block {
+        .text-block {
             width: 100%;
             background-color: #ffffff;
             padding: 20px;
@@ -188,14 +188,12 @@
             font-size: 18px;
             line-height: 1.6;
             color: #333;
-            /* Разрешаем перенос длинных слов, но не разрываем их принудительно */
             overflow-wrap: break-word;
             word-break: normal;
             hyphens: auto;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
         }
 
-        /* Для всех абзацев внутри блока, кроме первого, применяем выравнивание по ширине */
         .text-block-base p:not(:first-child) {
             text-align: justify;
         }
@@ -207,13 +205,11 @@
             margin-bottom: 0;
         }
 
-        /* Нижний блок (первый) – в потоке, задаёт высоту */
         .text-block-base {
             position: relative;
             z-index: 1;
         }
 
-        /* Верхний блок (второй) – абсолютно позиционирован поверх */
         .text-block-overlay {
             position: absolute;
             top: 0;
@@ -221,31 +217,6 @@
             z-index: 2;
             background-color: transparent;
             text-align: right;
-        }
-        /* Для Firefox */
-        html {
-            scrollbar-width: thin;
-            scrollbar-color: #888 #f0f0f0;
-        }
-
-        /* Для Chrome, Edge, Safari (WebKit) */
-        html::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        html::-webkit-scrollbar-track {
-            background: #f0f0f0;
-            border-radius: 8px;
-        }
-
-        html::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 8px;
-        }
-
-        html::-webkit-scrollbar-thumb:hover {
-            background: #555;
         }
 
         /* ========== БУКВА М (фиксированная) ========== */
@@ -404,6 +375,7 @@
             align-items: center;
             z-index: 1000;
             cursor: pointer;
+            touch-action: pan-y pinch-zoom; /* разрешаем пинч-зум, но предотвращаем масштабирование страницы */
         }
 
         .image-overlay img {
@@ -412,6 +384,9 @@
             object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: transform 0.2s ease;
+            will-change: transform;
+            touch-action: none; /* предотвращаем стандартные жесты браузера на картинке */
         }
 
         @media (max-width: 900px) {
@@ -419,16 +394,15 @@
                 flex-basis: 90vw;
             }
         }
+
         /* ========== МОБИЛЬНАЯ АДАПТАЦИЯ (до 768px) ========== */
         @media (max-width: 768px) {
-            /* Скрываем правую полосу и её содержимое по умолчанию */
             .vertical-strip-secondary,
             .letter-m,
             .letter-sub {
                 display: none;
             }
 
-            /* Показываем иконку-гамбургер (фиксированная, в правом верхнем углу) */
             .mobile-menu-icon {
                 display: block;
                 position: fixed;
@@ -437,10 +411,9 @@
                 width: 40px;
                 height: 30px;
                 cursor: pointer;
-                z-index: 100; /* выше всего */
+                z-index: 100;
             }
 
-            /* Три полоски внутри иконки */
             .mobile-menu-icon span {
                 display: block;
                 position: absolute;
@@ -462,102 +435,66 @@
                 top: 24px;
             }
 
-            /* Когда меню открыто — иконка скрывается */
             .mobile-menu-icon.hidden {
                 display: none;
             }
 
-            /* Класс для отображения правой полосы в развёрнутом состоянии */
             .vertical-strip-secondary.mobile-open {
-                display: block; /* или flex, если нужно */
-                transform: scaleX(1); /* увеличиваем ширину */
+                display: block;
+                transform: scaleX(1);
                 transform-origin: right center;
-                z-index: 25; /* выше других элементов */
+                z-index: 25;
             }
 
-            /* Когда полоса открыта, показываем и её содержимое */
             .vertical-strip-secondary.mobile-open + .letter-m,
             .vertical-strip-secondary.mobile-open ~ .letter-sub {
                 display: block;
             }
 
-            /* Дополнительно: для .letter-m и .letter-sub можно задать другие стили,
-            например, убрать фиксацию, чтобы они не перекрывали контент */
             .letter-m.mobile-open,
             .letter-sub.mobile-open {
-                position: fixed; /* оставляем фиксированными */
-                /* но можно сместить или изменить размер */
+                position: fixed;
             }
-
-            /* Если нужно, чтобы полоса при открытии была на всю ширину, раскомментируйте:
-            .vertical-strip-secondary.mobile-open {
-                width: 100%;
-                transform: none;
-                border-left: none;
-                background: rgba(255,255,255,0.9);
-            }
-            */
         }
-                .mobile-only {
+
+        .mobile-only {
             display: none;
         }
         @media (max-width: 768px) {
             .mobile-only {
-                display: block;          /* или inline-block, если нужно */
-                text-align: right;       /* выравнивание вправо */
+                display: block;
+                text-align: right;
                 margin-top: 1em;
-                /* другие стили, например font-size, font-weight */
             }
         }
-        
-                   .desktop-only {
-                display: block ;          /* или inline-block, если нужно */
+
+        .desktop-only {
+            display: block ;
         }
         @media (max-width: 768px) {
             .desktop-only {
                 display: none;
-
             }
         }
-@media (max-width: 768px) {
-    :root {
-        --left-strip-width: 10px;   /* новая ширина левой полосы */
-        --strip-width: 10px;        /* новая ширина правой прозрачной полосы */
-        /* также можно изменить --strip-secondary-width, если нужно */
-    }
-}
 
-
-
-
-
-
-
+        @media (max-width: 768px) {
+            :root {
+                --left-strip-width: 10px;
+                --strip-width: 10px;
+            }
+        }
     </style>
 </head>
 
-
-
-
-
-
-
-
 <body>
-        <!-- Иконка-гамбургер для мобильных (скрыта на десктопе) -->
+    <!-- Иконка-гамбургер для мобильных -->
     <div class="mobile-menu-icon" id="mobileMenuIcon">
         <span></span>
         <span></span>
         <span></span>
     </div>
 
-
-
-
-
-
-
-    <!-- Карусель в потоке -->
+    <!-- Карусель -->
     <div class="carousel-container">
         <div class="carousel-track" id="carouselTrack">
             <div class="carousel-slide"><img src="Горнолыжный курорт/Горнолыжный курорт 0.jpg" alt=""></div>
@@ -577,10 +514,10 @@
     <div class="vertical-strip"></div>
     <div class="vertical-strip-secondary"></div>
 
-    <!-- Буква М (фиксированная) -->
+    <!-- Буква М -->
     <a href="CV.html" class="letter-m">М</a>
 
-    <!-- Блок проектов (фиксированный) -->
+    <!-- Блок проектов -->
     <div class="letter-sub">
         <a href="Практикум Древолюзия.html" class="letter-sub-line">
             <span class="scroll-text">Практикум Древолюция</span>
@@ -596,23 +533,19 @@
         </a>
     </div>
 
-    <!-- Два текстовых блока – один над другим -->
+    <!-- Два текстовых блока -->
     <div class="text-blocks-stack-wrapper">
         <div class="text-blocks-stack">
-            <!-- Нижний блок (основной, текст прижат к левому краю) -->
             <div class="text-block text-block-base">
                 <p>Горнолыжный курорт</p>
-                <p class="mobile-only"> Дипломный проект 2025</p>
-                <p class="desktop-only"> <br></p>
-                </p><br></p>
+                <p class="mobile-only">Дипломный проект 2025</p>
+                <p class="desktop-only"><br></p>
                 <p>Расположен на горах Кавказа в поселке Архыз, на 2х сторонах ущелья – южной и северной. На данный момент протяженность трасс составляет 27 км. С 2015 года этот курорт активно развивается. Тогда была заложена новая территория для курорта, ее назвали «Лунная поляна». На данный момент там уже проложена дорога и построена гостиница «Moon 2». Мой участок расположен на южном склоне. Его с трех сторон обрамляет дорога, а с четвертой – лыжная трасса и Moon 2. Эти уже существующие ориентиры и послужили частичным решением зонирования моего участка и общей стилистике курорта.</p>
                 <p>Мой участок имеет перепад 20 метров с севера на юг. Он имеет несколько разноуровневых террас. Внутри них расположены технические помещения, парковки, а со стороны площадей там размещены магазины, кафе и пункты проката оборудования. Гостиницы расположены вдоль дороги и повернуты для наибольшего количества красивых видов из окон номеров. Во всех гостиницах есть рестораны/кафе, пункты хранения и проката оборудования. Мой участок зонирован так, чтобы в каждой гостинице была система ski in / ski out. Для этого запроектированы пандусы и мосты через дорогу.</p>
                 <p>Вечером, вместе с заходом солнца, в 16:00 перестают работать канатные дороги (летом они работают дольше); вечернее катание есть только на двух трассах по пятницам и субботам. Начинается вечерняя жизнь, уже без лыжников. Основной культурный центр моего курорта сосредоточен под красной оболочкой. Там расположены кафе, магазины, вход на ледовую арену (которая летом может быть переоборудована в байк‑парк), зрительный зал, вход на трибуну. Зимой оболочка закрывает от большого количества осадков, летом – от палящего солнца.</p>
                 <p>Таким образом, на курорте есть две шумных зоны. Одна – справа, зона отдыха для лыжников, ее активный период с 7 до 18; и вторая зона под оболочкой, активный период с 18 до 3.</p>
                 <p>На моем участке 6 гостиниц, расположенных на разных уровнях. По своей структуре они похожи. Это террасированные дома с большим атриумом почти во всю высоту здания.</p>
-                </p><br></p>
             </div>
-            <!-- Верхний блок (накладывается поверх, текст прижат к правому краю) -->
             <div class="text-block text-block-overlay">
                 <p class="desktop-only">Дипломный проект 2025</p>
             </div>
@@ -740,7 +673,14 @@
             let startTranslate = 0;
             let dragStartTime = 0;
             let dragHappened = false;
-            const DRAG_THRESHOLD = 5;
+            let dragThreshold = 5; // чувствительность перетаскивания
+
+            // Функция обновления порога в зависимости от ширины экрана
+            function updateDragThreshold() {
+                dragThreshold = window.innerWidth <= 768 ? 15 : 5;
+            }
+            updateDragThreshold();
+            window.addEventListener('resize', updateDragThreshold);
 
             function updateMeasurements() {
                 slideWidth = allSlides[0].offsetWidth;
@@ -813,7 +753,7 @@
                 track.style.transform = `translateX(${newTranslate}px)`;
                 currentTranslate = newTranslate;
 
-                if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+                if (Math.abs(deltaX) > dragThreshold) {
                     dragHappened = true;
                 }
             }
@@ -950,11 +890,64 @@
                 }
             }
         });
-    </script>
 
-      <script>
+        // ========== PINCH-TO-ZOOM для оверлея ==========
         (function() {
-            // Элементы
+            const overlay = document.getElementById('imageOverlay');
+            const img = overlay.querySelector('img');
+            if (!img) return;
+
+            let initialDistance = null;
+            let currentScale = 1;
+
+            function getDistance(touches) {
+                if (touches.length < 2) return null;
+                const dx = touches[0].clientX - touches[1].clientX;
+                const dy = touches[0].clientY - touches[1].clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            overlay.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault(); // предотвращаем масштабирование страницы
+                    initialDistance = getDistance(e.touches);
+                    currentScale = 1; // сбрасываем при новом жесте
+                }
+            });
+
+            overlay.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && initialDistance !== null) {
+                    e.preventDefault();
+                    const distance = getDistance(e.touches);
+                    if (distance) {
+                        // Масштаб = текущее расстояние / начальное
+                        let scale = distance / initialDistance;
+                        // Ограничим масштаб от 1 до 3, чтобы не улетело слишком далеко
+                        scale = Math.min(3, Math.max(1, scale));
+                        img.style.transform = `scale(${scale})`;
+                        currentScale = scale;
+                    }
+                }
+            });
+
+            overlay.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2 && initialDistance !== null) {
+                    // Заканчиваем жест – плавно возвращаем масштаб
+                    img.style.transition = 'transform 0.2s ease';
+                    img.style.transform = 'scale(1)';
+                    currentScale = 1;
+                    initialDistance = null;
+
+                    // Сбрасываем transition после окончания анимации, чтобы не мешать будущим жестам
+                    setTimeout(() => {
+                        img.style.transition = '';
+                    }, 200);
+                }
+            });
+        })();
+
+        // ========== МОБИЛЬНОЕ МЕНЮ ==========
+        (function() {
             const icon = document.getElementById('mobileMenuIcon');
             const strip = document.querySelector('.vertical-strip-secondary');
             const letterM = document.querySelector('.letter-m');
@@ -962,69 +955,30 @@
 
             if (!icon || !strip || !letterM || !letterSub) return;
 
-            // Клик по иконке
-            icon.addEventListener('click', function() {
-                // Скрываем иконку
+            icon.addEventListener('click', function(e) {
+                e.stopPropagation();
                 icon.classList.add('hidden');
-
-                // Показываем полосу и элементы, добавляем класс mobile-open
                 strip.classList.add('mobile-open');
                 letterM.classList.add('mobile-open');
                 letterSub.classList.add('mobile-open');
-
-                // (Опционально) Можно также добавить класс hover, если нужно увеличение как при наведении
-                strip.classList.add('hover'); // если у вас есть такой класс
+                strip.classList.add('hover');
             });
 
-            // (Опционально) Закрытие по клику вне меню — можно добавить позже
+            document.addEventListener('click', function(e) {
+                if (strip.classList.contains('mobile-open')) {
+                    const isClickInside = strip.contains(e.target) ||
+                                           letterM.contains(e.target) ||
+                                           letterSub.contains(e.target);
+                    if (!isClickInside) {
+                        strip.classList.remove('mobile-open');
+                        letterM.classList.remove('mobile-open');
+                        letterSub.classList.remove('mobile-open');
+                        icon.classList.remove('hidden');
+                    }
+                }
+            });
         })();
     </script>
-    <script>
-    (function() {
-        // Элементы
-        const icon = document.getElementById('mobileMenuIcon');
-        const strip = document.querySelector('.vertical-strip-secondary');
-        const letterM = document.querySelector('.letter-m');
-        const letterSub = document.querySelector('.letter-sub');
-
-        if (!icon || !strip || !letterM || !letterSub) return;
-
-        // Открытие меню по клику на иконку
-        icon.addEventListener('click', function(e) {
-            e.stopPropagation();         // предотвращаем всплытие, чтобы не закрылось сразу
-            icon.classList.add('hidden'); // скрываем иконку
-            strip.classList.add('mobile-open');
-            letterM.classList.add('mobile-open');
-            letterSub.classList.add('mobile-open');
-        });
-
-        // Закрытие при клике вне открытой полосы
-        document.addEventListener('click', function(e) {
-            // Если меню открыто
-            if (strip.classList.contains('mobile-open')) {
-                // Проверяем, был ли клик внутри полосы или внутри связанных элементов
-                const isClickInside = strip.contains(e.target) || 
-                                       letterM.contains(e.target) || 
-                                       letterSub.contains(e.target);
-                if (!isClickInside) {
-                    // Закрываем меню
-                    strip.classList.remove('mobile-open');
-                    letterM.classList.remove('mobile-open');
-                    letterSub.classList.remove('mobile-open');
-                    icon.classList.remove('hidden'); // показываем иконку
-                }
-            }
-        });
-    })();
-</script>
-
-
-
-
-
-
-
-
 
 </body>
 </html>
