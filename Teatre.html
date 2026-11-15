@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Театр</title>
+
+    <style>
+        /* ========== ОБЩИЕ СБРОСЫ И ПЕРЕМЕННЫЕ ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --carousel-height: 600px;
+            --carousel-top: 70px;
+            --left-strip-width: 50px;
+            --left-strip-color: rgb(255, 255, 255);
+            --strip-width: 120px;
+            --strip-color: rgb(255, 255, 255);
+            --strip-secondary-width: 100px;
+            --strip-secondary-color: rgb(255, 255, 255);
+            --strip-secondary-right-offset: 0px;
+            --text-block-width: 800px;
+            --sub-text-max-width: 250px;
+        }
+
+        body {
+            background-color: #ffffff;
+            font-family: 'Calibri', sans-serif;
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* ========== КАРУСЕЛЬ ========== */
+        .carousel-container {
+            margin-top: var(--carousel-top);
+            margin-left: var(--left-strip-width);
+            width: calc(100% - var(--left-strip-width) - var(--strip-width));
+            overflow: hidden;
+            position: relative;
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 20px;
+            transition: transform 0.4s ease;
+            will-change: transform;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .carousel-track.dragging {
+            transition: none;
+            cursor: grabbing;
+        }
+
+        .carousel-slide {
+            flex: 0 0 800px;
+            height: var(--carousel-height);
+            overflow: hidden;
+            transition: opacity 0.3s;
+            cursor: pointer;
+            background-color: #fff;
+            border: 1px solid rgb(255, 255, 255);
+            border-radius: 8px;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide:not(.active) {
+            opacity: 0.3;
+        }
+
+        /* ========== КНОПКИ НАВИГАЦИИ ========== */
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 48px;
+            font-weight: 300;
+            font-family: 'Calibri', sans-serif;
+            color: #333333;
+            transition: transform 0.2s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 10px;
+        }
+
+        .carousel-btn.prev {
+            left: -4px;
+            color: #3333339e;
+            right: auto;
+        }
+
+        .carousel-btn.next {
+            right: -4px;
+            left: auto;
+        }
+
+        .carousel-btn:hover {
+            transform: translateY(-50%) scale(1.4);
+            color: #000;
+        }
+
+        /* ========== ПОЛОСЫ ========== */
+        .left-strip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--left-strip-width);
+            height: 100vh;
+            background-color: var(--left-strip-color);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .vertical-strip {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: var(--strip-width);
+            height: 100vh;
+            background-color: var(--strip-color);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .vertical-strip-secondary {
+            position: fixed;
+            top: 0;
+            right: var(--strip-secondary-right-offset);
+            width: var(--strip-secondary-width);
+            height: 100vh;
+            background-color: var(--strip-secondary-color);
+            pointer-events: auto;
+            z-index: 15;
+            transition: transform 0.3s ease;
+            transform-origin: right center;
+            border-left: 1px solid black;
+        }
+
+        .vertical-strip-secondary:hover,
+        .vertical-strip-secondary.hover {
+            transform: scaleX(2);
+            z-index: 25;
+        }
+
+        /* ========== ТЕКСТ ========== */
+        .text-blocks-stack-wrapper {
+            margin-left: var(--left-strip-width);
+            margin-right: var(--strip-width);
+            margin-top: 55px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .text-blocks-stack {
+            width: var(--text-block-width);
+            position: relative;
+        }
+
+        .text-block {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+            overflow-wrap: break-word;
+            word-break: normal;
+            hyphens: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
+        }
+
+        .text-block-base p:not(:first-child) {
+            text-align: justify;
+        }
+
+        .text-block p {
+            margin-bottom: 1.05em;
+        }
+
+        .text-block p:last-child {
+            margin-bottom: 0;
+        }
+
+        .text-block-base {
+            position: relative;
+            z-index: 1;
+        }
+
+        .text-block-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            background-color: transparent;
+            text-align: right;
+        }
+
+        /* ========== СКРОЛЛБАР ========== */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f0f0f0;
+        }
+
+        html::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        html::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        html::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 8px;
+        }
+
+        html::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* ========== БУКВА М ========== */
+        .letter-m {
+            position: fixed;
+            right: calc(var(--strip-secondary-right-offset) - 11px);
+            top: 30px;
+            font-size: 108px;
+            font-family: 'Calibri', sans-serif;
+            color: #333;
+            z-index: 30;
+            line-height: 1;
+            font-weight: 300;
+            text-decoration: none;
+            cursor: pointer;
+            transition: font-size 0.2s ease, transform 0.2s ease, color 0.2s ease;
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 0px;
+        }
+
+        .letter-m.extra-letters::before,
+        .letter-m.extra-letters::after {
+            transform: translateY(-16px);
+        }
+
+        .letter-m:hover {
+            color: #666;
+            font-size: 118px;
+            transform: translateY(-2px);
+        }
+
+        .letter-m::before,
+        .letter-m::after {
+            content: "";
+            font-size: 18px;
+            font-weight: 300;
+            color: inherit;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: pre;
+        }
+
+        .letter-m::before {
+            content: "ho ";
+        }
+
+        .letter-m::after {
+            content: " e";
+        }
+
+        .letter-m.extra-letters::before,
+        .letter-m.extra-letters::after {
+            opacity: 1;
+        }
+
+        .letter-m.extra-letters {
+            transform: translateX(-18px);
+        }
+
+        .letter-m.extra-letters:hover {
+            transform: translateY(-2px) translateX(-20px);
+        }
+
+        /* ========== БЛОК ПРОЕКТОВ ========== */
+        .letter-sub {
+            position: fixed;
+            right: calc(var(--strip-secondary-right-offset) + 10px);
+            top: 50%;
+            z-index: 31;
+            max-width: calc(var(--sub-text-max-width) - 170px);
+            transition: max-width 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .letter-sub.expanded {
+            max-width: 170px;
+        }
+
+        .letter-sub-line {
+            display: block;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 300;
+            color: #333;
+            text-align: left;
+            text-decoration: none;
+            margin-bottom: 15px;
+            cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+            transition: font-size 0.2s ease, transform 0.2s ease;
+        }
+
+        .letter-sub-line:hover {
+            font-size: 20px;
+            transform: translateY(-2px);
+        }
+
+        .letter-sub-line.bold {
+            font-weight: 700;
+        }
+
+        .scroll-text {
+            display: inline-block;
+            white-space: nowrap;
+            transition: transform 0s;
+            will-change: transform;
+        }
+
+        /* ========== КНОПКА СЛЕДУЮЩЕГО ПРОЕКТА ========== */
+        .next-project-button {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, background-color 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+        }
+
+        .next-project-button:hover {
+            background-color: #555;
+        }
+
+        .next-project-button.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ========== СТРЕЛКА ВНИЗ ========== */
+        .scroll-down-arrow {
+            position: fixed;
+            bottom: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            color: #333;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+            z-index: 50;
+            pointer-events: auto;
+            padding: 0;
+            animation: arrowBounce 2s ease-in-out infinite;
+        }
+
+        .scroll-down-arrow svg {
+            display: block;
+        }
+
+        .scroll-down-arrow:hover {
+            color: #000;
+            animation-play-state: paused;
+        }
+
+        .scroll-down-arrow.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(7px);
+            }
+        }
+
+        /* ========== ОВЕРЛЕЙ ========== */
+        .image-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .image-overlay img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        /* ========== АДАПТАЦИЯ ========== */
+        @media (max-width: 900px) {
+            .carousel-slide {
+                flex-basis: 90vw;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .vertical-strip-secondary,
+            .letter-m,
+            .letter-sub {
+                display: none;
+            }
+
+            .mobile-menu-icon {
+                display: block;
+                position: fixed;
+                top: 30px;
+                right: 20px;
+                width: 40px;
+                height: 30px;
+                cursor: pointer;
+                z-index: 100;
+            }
+
+            .mobile-menu-icon span {
+                display: block;
+                position: absolute;
+                height: 4px;
+                width: 100%;
+                background: #333;
+                border-radius: 4px;
+                left: 0;
+                transition: 0.3s;
+            }
+
+            .mobile-menu-icon span:nth-child(1) {
+                top: 0;
+            }
+
+            .mobile-menu-icon span:nth-child(2) {
+                top: 12px;
+            }
+
+            .mobile-menu-icon span:nth-child(3) {
+                top: 24px;
+            }
+
+            .mobile-menu-icon.hidden {
+                display: none;
+            }
+
+            /*
+             * Меню на телефоне: белый экран. По центру экрана блок:
+             * «Home» с тонкой линией под ним и список проектов
+             * (текст выровнен по правому краю).
+             *
+             * Расчёт рассчитан на 5 пунктов меню: высота блока «Home»
+             * ≈ 79px, списка ≈ 186px. Если пунктов станет другое
+             * число, поправьте значения top у .letter-m и .letter-sub.
+             */
+
+            .vertical-strip-secondary.mobile-open {
+                display: block;
+                left: 0;
+                right: 0;
+                width: 100vw;
+                transform: none;
+                border: none;
+                border-radius: 0;
+                outline: none;
+                box-shadow: none;
+                background: #fff;
+                z-index: 2001;
+            }
+
+            .letter-m.mobile-open,
+            .letter-m.mobile-open.extra-letters,
+            .letter-m.mobile-open.extra-letters:hover {
+                display: flex;
+                justify-content: flex-end;
+                align-items: baseline;
+                position: fixed;
+                right: auto;
+                left: 50%;
+                top: calc(46% - 152px);
+                transform: translateX(-50%);
+                width: min(88vw, 340px);
+                box-sizing: border-box;
+                padding: 0 7px 6px 0;
+                border-bottom: 1px solid #333;
+                font-size: 72px;
+                white-space: nowrap;
+                z-index: 2002;
+            }
+
+            .letter-m.mobile-open::before,
+            .letter-m.mobile-open::after {
+                transform: none;
+            }
+
+            .letter-sub.mobile-open,
+            .letter-sub.mobile-open.expanded {
+                display: block;
+                position: fixed;
+                right: auto;
+                left: 50%;
+                top: calc(46% - 33px);
+                transform: translateX(-50%);
+                width: min(88vw, 340px);
+                max-width: none;
+                box-sizing: border-box;
+                padding-right: 30px;
+                text-align: right;
+                z-index: 2002;
+            }
+
+            .letter-sub.mobile-open .letter-sub-line {
+                text-align: right;
+                white-space: normal;
+                overflow: visible;
+                margin: 0 0 15px;
+            }
+
+            .letter-sub.mobile-open .letter-sub-line:last-child {
+                margin-bottom: 0;
+            }
+
+            .letter-sub.mobile-open .scroll-text {
+                white-space: normal;
+            }
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: block;
+                text-align: right;
+                margin-top: 1em;
+            }
+        }
+
+        .desktop-only {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --left-strip-width: 10px;
+                --strip-width: 10px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="project-common.css">
+</head>
+
+<body>
+
+    <!-- Иконка-гамбургер -->
+    <div class="mobile-menu-icon" id="mobileMenuIcon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Карусель -->
+    <div class="carousel-container">
+        <div class="carousel-track" id="carouselTrack">
+
+            <div class="carousel-slide">
+                <img src="theatre/picture.jpg" alt="">
+            </div>
+
+            <div class="carousel-slide">
+                <img src="theatre/theatre_wide.jpg" data-ru-src="theatre/ru/theatre_wide.jpg" alt="">
+            </div>
+
+            <div class="carousel-slide">
+                <img src="theatre/theatre_2.jpg" data-ru-src="theatre/ru/theatre_2.jpg" alt="">
+            </div>
+
+            <div class="carousel-slide">
+                <img src="theatre/theatre_3.jpg" data-ru-src="theatre/ru/theatre_3.jpg" alt="">
+            </div>
+
+            <div class="carousel-slide">
+                <img src="theatre/theatre_4.jpg" data-ru-src="theatre/ru/theatre_4.jpg" alt="">
+            </div>
+
+        </div>
+
+        <button class="carousel-btn prev" id="prevBtn"><</button>
+        <button class="carousel-btn next" id="nextBtn">></button>
+    </div>
+
+    <!-- Фиксированные полосы -->
+    <div class="left-strip"></div>
+    <div class="vertical-strip"></div>
+    <div class="vertical-strip-secondary"></div>
+
+    <!-- Буква М -->
+    <a href="CV.html" class="letter-m">М</a>
+
+    <!-- Блок проектов -->
+    <div class="letter-sub">
+
+        <a
+            href="#"
+            class="letter-sub-line"
+            data-href-en="TREE_REVOLUTION.html"
+            data-href-ru="TREE_REVOLUTION.html">
+            <span
+                class="scroll-text"
+                data-i18n="project1">
+            </span>
+        </a>
+
+        <a
+            href="#"
+            class="letter-sub-line bold"
+            data-href-en="Teatre.html"
+            data-href-ru="Teatre.html">
+            <span
+                class="scroll-text"
+                data-i18n="project2">
+            </span>
+        </a>
+
+        <a
+            href="#"
+            class="letter-sub-line"
+            data-href-en="Ski_resort_2.html"
+            data-href-ru="Ski_resort_2.html">
+            <span
+                class="scroll-text"
+                data-i18n="project3">
+            </span>
+        </a>
+
+        <a
+            href="Plugin.html"
+            class="letter-sub-line">
+            <span
+                class="scroll-text"
+                data-i18n="project4">
+            </span>
+        </a>
+
+        <a
+            href="Slicer.html"
+            class="letter-sub-line">
+            <span
+                class="scroll-text"
+                data-i18n="project5">
+            </span>
+        </a>
+
+    </div>
+
+    <!-- Текст -->
+    <div class="text-blocks-stack-wrapper">
+
+        <div class="text-blocks-stack">
+
+            <div class="text-block text-block-base">
+
+                <p data-i18n="title"></p>
+
+                <p
+                    class="mobile-only"
+                    data-i18n="subtitle">
+                </p>
+
+                <p class="desktop-only">
+                    <br>
+                </p>
+
+                <p data-i18n="text1"></p>
+
+                <p data-i18n="text2"></p>
+
+            </div>
+
+            <div class="text-block text-block-overlay">
+
+                <p
+                    class="desktop-only"
+                    data-i18n="subtitle">
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Кнопка следующего проекта -->
+    <div
+        class="next-project-button"
+        id="nextProjectBtn"
+        data-i18n="nextProject">
+    </div>
+
+    <!-- Стрелка вниз -->
+    <button
+        class="scroll-down-arrow"
+        id="scrollDownArrow"
+        aria-label="Scroll down">
+
+        <svg
+            width="28"
+            height="28"
+            viewBox="0 0 28 28"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+
+            <polyline
+                points="5,10 14,19 23,10"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+
+        </svg>
+
+    </button>
+
+    <!-- Оверлей -->
+    <div class="image-overlay" id="imageOverlay">
+        <img src="" alt="">
+    </div>
+
+
+    <script>
+
+        /* =========================================================
+           ЯЗЫК
+        ========================================================= */
+
+        const translations = {
+
+            ru: {
+                project1: 'Практикум Древолюция',
+                project2: 'Театр',
+                project3: 'Горнолыжный курорт',
+                project4: 'Плагин для Rhino + Grasshopper',
+                project5: 'Слайсер',
+
+                title: 'Театр',
+                subtitle: 'Курсовой проект 2024',
+
+                text1: 'Театр начинается с вешалки, а заканчивается цветами на сцене.',
+
+                text2: 'Здание театра расположено в Москве у пересадки между московским метро и московской железной дорогой. Театр состоит из нескольких залов, в разных объемах. Один основной на 600 мест, второй на 200 человек посадочные места расположенны на большом пандусе. За основной сценой расположены технические помещения. Над зрительным залом основной сцены находится ресторан.',
+
+                nextProject: 'Следующий проект >'
+            },
+
+            en: {
+                project1: 'Workshop Treevolution 2024',
+                project2: 'Theatre',
+                project3: 'The ski resort',
+                project4: 'The plugin for Rhino + Grasshopper',
+                project5: 'Slicer',
+
+                title: 'Theatre',
+                subtitle: 'Course Project 2024',
+
+                text1: 'The theatre begins with the coat rack, and ends with flowers on the stage.',
+
+                text2: 'The theater building is located in Moscow, at the interchange between the Moscow Metro and the Moscow Railway. The theater consists of several halls in separate volumes. One main hall seats 600 people, and a second hall seats 200 people, with the seating arranged on a large ramp. Technical rooms are located behind the main stage. A restaurant is situated above the main stage auditorium.',
+
+                nextProject: 'Next Project >'
+            }
+
+        };
+
+
+        // Язык: выбранный на главной странице; если выбора не было —
+        // по языку браузера (русский → ru, любой другой → en)
+        let lang = localStorage.getItem('language');
+
+        if (lang !== 'ru' && lang !== 'en') {
+
+            const browserLanguage =
+                (navigator.languages && navigator.languages[0]) ||
+                navigator.language ||
+                '';
+
+            lang = /^ru(-|$)/i.test(browserLanguage) ? 'ru' : 'en';
+        }
+
+        document.documentElement.lang = lang;
+
+        /*
+         * В русской версии подставляем картинки с русскими надписями.
+         * Делается до запуска карусели, чтобы клоны слайдов
+         * тоже получили русские версии.
+         */
+
+        if (lang === 'ru') {
+
+            document.querySelectorAll(
+                '.carousel-slide img[data-ru-src]'
+            ).forEach(img => {
+
+                img.src = img.dataset.ruSrc;
+
+            });
+
+        }
+
+        document.title =
+            lang === 'ru'
+                ? 'Театр'
+                : 'Theatre';
+
+
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+
+            const key = element.dataset.i18n;
+
+            if (translations[lang][key] !== undefined) {
+                element.textContent = translations[lang][key];
+            }
+
+        });
+
+
+        /* Ссылки меню меняются вместе с языком */
+
+        document.querySelectorAll('[data-href-en][data-href-ru]').forEach(link => {
+
+            link.href =
+                lang === 'ru'
+                    ? link.dataset.hrefRu
+                    : link.dataset.hrefEn;
+
+        });
+
+
+        /* =========================================================
+           НАСТРОЙКИ
+        ========================================================= */
+
+        const SCROLL_SPEED = 50;
+        const SCROLL_DELAY = 300;
+        const EXTRA_DISTANCE = 0.1;
+        const SCROLL_THRESHOLD = 20;
+
+
+        /* =========================================================
+           СКРОЛЛ ТЕКСТА В МЕНЮ
+        ========================================================= */
+
+        function initScrollOnHover() {
+
+            const lines =
+                document.querySelectorAll('.letter-sub-line');
+
+            lines.forEach(line => {
+
+                const textSpan =
+                    line.querySelector('.scroll-text');
+
+                if (!textSpan) return;
+
+                let isHovered = false;
+                let scrollTimer = null;
+
+
+                function startScroll() {
+
+                    if (isHovered) return;
+
+                    isHovered = true;
+
+                    textSpan.style.transition = 'none';
+                    textSpan.style.transform = '';
+
+
+                    scrollTimer = setTimeout(() => {
+
+                        if (!isHovered) return;
+
+                        const containerWidth =
+                            line.offsetWidth;
+
+                        const textWidth =
+                            textSpan.offsetWidth;
+
+                        if (textWidth <= containerWidth) {
+
+                            isHovered = false;
+                            return;
+
+                        }
+
+                        let scrollDistance =
+                            textWidth - containerWidth;
+
+                        scrollDistance =
+                            scrollDistance * (1 + EXTRA_DISTANCE);
+
+                        const duration =
+                            scrollDistance / SCROLL_SPEED;
+
+                        textSpan.style.transition =
+                            `transform ${duration}s ease`;
+
+                        textSpan.style.transform =
+                            `translateX(-${scrollDistance}px)`;
+
+                    }, SCROLL_DELAY);
+                }
+
+
+                function resetScroll() {
+
+                    if (scrollTimer) {
+                        clearTimeout(scrollTimer);
+                        scrollTimer = null;
+                    }
+
+                    if (!isHovered) return;
+
+                    isHovered = false;
+
+                    const currentTransform =
+                        textSpan.style.transform;
+
+                    let currentShift = 0;
+
+                    if (currentTransform) {
+
+                        const match =
+                            currentTransform.match(
+                                /translateX\(-([\d.]+)px\)/
+                            );
+
+                        if (match) {
+                            currentShift =
+                                parseFloat(match[1]);
+                        }
+                    }
+
+
+                    if (currentShift > 0) {
+
+                        const duration =
+                            currentShift / SCROLL_SPEED;
+
+                        textSpan.style.transition =
+                            `transform ${duration}s ease`;
+
+                        textSpan.style.transform =
+                            'translateX(0)';
+
+                    } else {
+
+                        textSpan.style.transition = '';
+                        textSpan.style.transform = '';
+
+                    }
+
+                }
+
+
+                line.addEventListener(
+                    'mouseenter',
+                    startScroll
+                );
+
+                line.addEventListener(
+                    'mouseleave',
+                    resetScroll
+                );
+
+
+                window.addEventListener('resize', () => {
+
+                    if (!isHovered) {
+
+                        textSpan.style.transition = '';
+                        textSpan.style.transform = '';
+
+                    } else {
+
+                        textSpan.style.transition = '';
+                        textSpan.style.transform = '';
+
+                        isHovered = false;
+
+                        if (scrollTimer) {
+                            clearTimeout(scrollTimer);
+                        }
+
+                        startScroll();
+
+                    }
+
+                });
+
+            });
+
+        }
+
+
+        if (document.readyState === 'loading') {
+
+            document.addEventListener(
+                'DOMContentLoaded',
+                initScrollOnHover
+            );
+
+        } else {
+
+            initScrollOnHover();
+
+        }
+
+
+        /* =========================================================
+           БЕСКОНЕЧНАЯ КАРУСЕЛЬ
+        ========================================================= */
+
+        (function() {
+
+            const track =
+                document.getElementById('carouselTrack');
+
+            const originalSlides =
+                Array.from(
+                    document.querySelectorAll('.carousel-slide')
+                );
+
+            const prevBtn =
+                document.getElementById('prevBtn');
+
+            const nextBtnCarousel =
+                document.getElementById('nextBtn');
+
+            const overlay =
+                document.getElementById('imageOverlay');
+
+            const overlayImg =
+                overlay.querySelector('img');
+
+
+            if (!originalSlides.length) return;
+
+
+            const firstClone =
+                originalSlides[0].cloneNode(true);
+
+            const lastClone =
+                originalSlides[
+                    originalSlides.length - 1
+                ].cloneNode(true);
+
+
+            track.insertBefore(
+                lastClone,
+                originalSlides[0]
+            );
+
+            track.appendChild(firstClone);
+
+
+            const allSlides =
+                document.querySelectorAll(
+                    '.carousel-slide'
+                );
+
+            const totalSlides =
+                allSlides.length;
+
+
+            let currentIndex = 1;
+
+            let slideWidth;
+            let gap;
+            let containerWidth;
+            let step;
+
+            let isDragging = false;
+
+            let startX = 0;
+            let currentTranslate = 0;
+            let startTranslate = 0;
+
+            let dragStartTime = 0;
+            let dragHappened = false;
+
+            const DRAG_THRESHOLD = 5;
+
+
+            function updateMeasurements() {
+
+                slideWidth =
+                    allSlides[0].offsetWidth;
+
+                gap =
+                    parseFloat(
+                        getComputedStyle(track).gap
+                    ) || 0;
+
+                containerWidth =
+                    document.querySelector(
+                        '.carousel-container'
+                    ).offsetWidth;
+
+                step =
+                    slideWidth + gap;
+
+            }
+
+
+            function getOffsetForIndex(index) {
+
+                const slideLeft =
+                    index * step;
+
+                return (
+                    containerWidth / 2
+                ) - (
+                    slideLeft + slideWidth / 2
+                );
+
+            }
+
+
+            function updatePosition(animate = true) {
+
+                if (!animate) {
+
+                    track.style.transition = 'none';
+
+                } else {
+
+                    track.style.transition =
+                        'transform 0.4s ease';
+
+                }
+
+
+                const offset =
+                    getOffsetForIndex(currentIndex);
+
+
+                track.style.transform =
+                    `translateX(${offset}px)`;
+
+
+                currentTranslate = offset;
+
+
+                allSlides.forEach((slide, i) => {
+
+                    slide.classList.toggle(
+                        'active',
+                        i === currentIndex
+                    );
+
+                });
+
+
+                if (!animate) {
+
+                    track.offsetHeight;
+
+                    track.style.transition =
+                        'transform 0.4s ease';
+
+                }
+
+            }
+
+
+            function goToSlide(
+                newIndex,
+                animated = true
+            ) {
+
+                if (
+                    newIndex < 0 ||
+                    newIndex >= totalSlides
+                ) return;
+
+
+                currentIndex = newIndex;
+
+                updatePosition(animated);
+
+                handleInfinite();
+
+            }
+
+
+            function handleInfinite() {
+
+                if (currentIndex === 0) {
+
+                    setTimeout(() => {
+
+                        currentIndex =
+                            totalSlides - 2;
+
+                        updatePosition(false);
+
+                    }, 400);
+
+                }
+
+                else if (
+                    currentIndex === totalSlides - 1
+                ) {
+
+                    setTimeout(() => {
+
+                        currentIndex = 1;
+
+                        updatePosition(false);
+
+                    }, 400);
+
+                }
+
+            }
+
+
+            function onDragStart(e) {
+
+                e.preventDefault();
+
+                startX =
+                    e.type === 'mousedown'
+                        ? e.pageX
+                        : e.touches[0].pageX;
+
+                isDragging = true;
+
+                dragHappened = false;
+
+                track.classList.add('dragging');
+
+                dragStartTime = Date.now();
+
+                startTranslate =
+                    currentTranslate;
+
+                track.style.transition = 'none';
+
+            }
+
+
+            function onDragMove(e) {
+
+                if (!isDragging) return;
+
+                e.preventDefault();
+
+                const currentX =
+                    e.type === 'mousemove'
+                        ? e.pageX
+                        : e.touches[0].pageX;
+
+                const deltaX =
+                    currentX - startX;
+
+                const newTranslate =
+                    startTranslate + deltaX;
+
+                track.style.transform =
+                    `translateX(${newTranslate}px)`;
+
+                currentTranslate =
+                    newTranslate;
+
+
+                if (
+                    Math.abs(deltaX) >
+                    DRAG_THRESHOLD
+                ) {
+
+                    dragHappened = true;
+
+                }
+
+            }
+
+
+            function onDragEnd() {
+
+                if (!isDragging) return;
+
+                isDragging = false;
+
+                track.classList.remove('dragging');
+
+
+                const dragTime =
+                    Date.now() - dragStartTime;
+
+                const distance =
+                    currentTranslate -
+                    startTranslate;
+
+                const speed =
+                    Math.abs(distance) /
+                    dragTime;
+
+                const threshold =
+                    slideWidth * 0.3;
+
+
+                let deltaIndex = 0;
+
+
+                if (
+                    Math.abs(distance) >
+                    threshold
+                ) {
+
+                    deltaIndex =
+                        distance > 0
+                            ? -1
+                            : 1;
+
+                }
+
+                else if (speed > 0.5) {
+
+                    deltaIndex =
+                        distance > 0
+                            ? -1
+                            : 1;
+
+                }
+
+
+                let newIndex =
+                    currentIndex +
+                    deltaIndex;
+
+
+                if (newIndex < 0) {
+                    newIndex = 0;
+                }
+
+                if (newIndex >= totalSlides) {
+                    newIndex = totalSlides - 1;
+                }
+
+
+                goToSlide(
+                    newIndex,
+                    true
+                );
+
+
+                setTimeout(() => {
+
+                    dragHappened = false;
+
+                }, 200);
+
+            }
+
+
+            track.addEventListener(
+                'mousedown',
+                onDragStart
+            );
+
+            window.addEventListener(
+                'mousemove',
+                onDragMove
+            );
+
+            window.addEventListener(
+                'mouseup',
+                onDragEnd
+            );
+
+
+            track.addEventListener(
+                'touchstart',
+                onDragStart
+            );
+
+            window.addEventListener(
+                'touchmove',
+                onDragMove,
+                { passive: false }
+            );
+
+            window.addEventListener(
+                'touchend',
+                onDragEnd
+            );
+
+
+            prevBtn.addEventListener(
+                'click',
+                () =>
+                    goToSlide(
+                        currentIndex - 1
+                    )
+            );
+
+            nextBtnCarousel.addEventListener(
+                'click',
+                () =>
+                    goToSlide(
+                        currentIndex + 1
+                    )
+            );
+
+
+            window.addEventListener(
+                'resize',
+                () => {
+
+                    updateMeasurements();
+
+                    updatePosition(false);
+
+                }
+            );
+
+
+            updateMeasurements();
+
+            updatePosition(false);
+
+
+            track.addEventListener(
+                'click',
+                e => {
+
+                    if (dragHappened) return;
+
+                    const slide =
+                        e.target.closest(
+                            '.carousel-slide'
+                        );
+
+                    if (!slide) return;
+
+
+                    const img =
+                        slide.querySelector('img');
+
+                    if (!img) return;
+
+
+                    overlayImg.src =
+                        img.src;
+
+                    overlay.style.display =
+                        'flex';
+
+                }
+            );
+
+
+            overlay.addEventListener(
+                'click',
+                e => {
+
+                    if (
+                        e.target === overlay ||
+                        e.target === overlayImg
+                    ) {
+
+                        overlay.style.display =
+                            'none';
+
+                    }
+
+                }
+            );
+
+        })();
+
+
+        /* =========================================================
+           ЭФФЕКТЫ ПРАВОЙ ПОЛОСЫ
+        ========================================================= */
+
+        (function() {
+
+            const strip =
+                document.querySelector(
+                    '.vertical-strip-secondary'
+                );
+
+            const mLink =
+                document.querySelector(
+                    '.letter-m'
+                );
+
+            const subContainer =
+                document.querySelector(
+                    '.letter-sub'
+                );
+
+
+            if (
+                !strip ||
+                !mLink ||
+                !subContainer
+            ) return;
+
+
+            function addEffects() {
+
+                strip.classList.add('hover');
+
+                subContainer.classList.add(
+                    'expanded'
+                );
+
+                mLink.classList.add(
+                    'extra-letters'
+                );
+
+            }
+
+
+            function removeEffects() {
+
+                strip.classList.remove('hover');
+
+                subContainer.classList.remove(
+                    'expanded'
+                );
+
+                mLink.classList.remove(
+                    'extra-letters'
+                );
+
+            }
+
+
+            strip.addEventListener(
+                'mouseenter',
+                addEffects
+            );
+
+            strip.addEventListener(
+                'mouseleave',
+                removeEffects
+            );
+
+            mLink.addEventListener(
+                'mouseenter',
+                addEffects
+            );
+
+            mLink.addEventListener(
+                'mouseleave',
+                removeEffects
+            );
+
+            subContainer.addEventListener(
+                'mouseenter',
+                addEffects
+            );
+
+            subContainer.addEventListener(
+                'mouseleave',
+                removeEffects
+            );
+
+        })();
+
+
+        /* =========================================================
+           СТРЕЛКА + СЛЕДУЮЩИЙ ПРОЕКТ
+        ========================================================= */
+
+        (function() {
+
+            const arrow =
+                document.getElementById(
+                    'scrollDownArrow'
+                );
+
+            const textWrapper =
+                document.querySelector(
+                    '.text-blocks-stack-wrapper'
+                );
+
+            const nextProjectBtn =
+                document.getElementById(
+                    'nextProjectBtn'
+                );
+
+
+            let targetUrl = '#';
+
+
+            function positionArrow() {
+
+                const style =
+                    getComputedStyle(
+                        document.documentElement
+                    );
+
+                const leftStrip =
+                    parseFloat(
+                        style.getPropertyValue(
+                            '--left-strip-width'
+                        )
+                    ) || 50;
+
+                const rightStrip =
+                    parseFloat(
+                        style.getPropertyValue(
+                            '--strip-width'
+                        )
+                    ) || 120;
+
+
+                const carouselCenter =
+                    leftStrip +
+                    (
+                        window.innerWidth -
+                        leftStrip -
+                        rightStrip
+                    ) / 2;
+
+
+                arrow.style.left =
+                    carouselCenter + 'px';
+
+            }
+
+
+            positionArrow();
+
+            window.addEventListener(
+                'resize',
+                positionArrow
+            );
+
+
+            /* Следующий проект */
+
+            const links =
+                document.querySelectorAll(
+                    '.letter-sub-line'
+                );
+
+
+            let boldIndex = -1;
+
+
+            for (
+                let i = 0;
+                i < links.length;
+                i++
+            ) {
+
+                if (
+                    links[i].classList.contains(
+                        'bold'
+                    )
+                ) {
+
+                    boldIndex = i;
+
+                    break;
+
+                }
+
+            }
+
+
+            if (
+                boldIndex !== -1 &&
+                boldIndex + 1 < links.length
+            ) {
+
+                const nextLink =
+                    links[boldIndex + 1];
+
+                if (
+                    nextLink.href &&
+                    nextLink.href !== '#'
+                ) {
+
+                    targetUrl =
+                        nextLink.href;
+
+                }
+
+            }
+
+
+            const ARROW_THRESHOLD = 80;
+
+
+            window.addEventListener(
+                'scroll',
+                function() {
+
+                    const scrolled =
+                        window.scrollY ||
+                        document.documentElement.scrollTop;
+
+
+                    arrow.classList.toggle(
+                        'hidden',
+                        scrolled >
+                        ARROW_THRESHOLD
+                    );
+
+
+                    const isBottom =
+                        window.innerHeight +
+                        window.scrollY >=
+                        document.documentElement.scrollHeight -
+                        SCROLL_THRESHOLD;
+
+
+                    nextProjectBtn.classList.toggle(
+                        'visible',
+                        isBottom
+                    );
+
+                }
+            );
+
+
+            arrow.addEventListener(
+                'click',
+                function() {
+
+                    textWrapper.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                }
+            );
+
+
+            nextProjectBtn.addEventListener(
+                'click',
+                function() {
+
+                    if (
+                        targetUrl &&
+                        targetUrl !== '#'
+                    ) {
+
+                        window.location.href =
+                            targetUrl;
+
+                    }
+
+                }
+            );
+
+        })();
+
+
+        /* =========================================================
+           ESC — ЗАКРЫТИЕ ОВЕРЛЕЯ
+        ========================================================= */
+
+        document.addEventListener(
+            'keydown',
+            function(e) {
+
+                if (e.key === 'Escape') {
+
+                    const overlay =
+                        document.getElementById(
+                            'imageOverlay'
+                        );
+
+                    if (
+                        overlay.style.display ===
+                        'flex'
+                    ) {
+
+                        overlay.style.display =
+                            'none';
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           МОБИЛЬНОЕ МЕНЮ
+        ========================================================= */
+
+        (function() {
+
+            const icon =
+                document.getElementById(
+                    'mobileMenuIcon'
+                );
+
+            const strip =
+                document.querySelector(
+                    '.vertical-strip-secondary'
+                );
+
+            const letterM =
+                document.querySelector(
+                    '.letter-m'
+                );
+
+            const letterSub =
+                document.querySelector(
+                    '.letter-sub'
+                );
+
+
+            if (
+                !icon ||
+                !strip ||
+                !letterM ||
+                !letterSub
+            ) return;
+
+
+            icon.addEventListener(
+                'click',
+                function(e) {
+
+                    e.stopPropagation();
+
+                    icon.classList.add(
+                        'hidden'
+                    );
+
+                    strip.classList.add(
+                        'mobile-open'
+                    );
+
+                    letterM.classList.add(
+                        'mobile-open'
+                    );
+
+                    letterSub.classList.add(
+                        'mobile-open'
+                    );
+
+                    letterM.classList.add(
+                        'extra-letters'
+                    );
+
+                }
+            );
+
+
+            document.addEventListener(
+                'click',
+                function(e) {
+
+                    if (
+                        strip.classList.contains(
+                            'mobile-open'
+                        )
+                    ) {
+
+                        const isClickInside =
+                            letterM.contains(e.target) ||
+                            letterSub.contains(e.target);
+
+
+                        if (!isClickInside) {
+
+                            strip.classList.remove(
+                                'mobile-open'
+                            );
+
+                            letterM.classList.remove(
+                                'mobile-open'
+                            );
+
+                            letterSub.classList.remove(
+                                'mobile-open'
+                            );
+
+                            letterM.classList.remove(
+                                'extra-letters'
+                            );
+
+                            icon.classList.remove(
+                                'hidden'
+                            );
+
+                        }
+
+                    }
+
+                }
+            );
+
+        })();
+
+    </script>
+
+<script src="project-common.js"></script>
+
+</body>
+</html>

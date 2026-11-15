@@ -1,15 +1,27 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV (контакты с эффектом и копированием)</title>
+
+    <title>CV</title>
+
     <style>
         :root {
             --top-offset: 60vh;
+            --photo-height: 380px;
+            --contact-height: 54px;
+
+            /* На сколько пикселей опускать блок контактов ниже края фото */
+            --contact-drop: 6px;
         }
 
-        html, body {
+        /* =========================================================
+           ОСНОВА
+        ========================================================= */
+
+        html,
+        body {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -17,163 +29,54 @@
             position: relative;
         }
 
+        /* =========================================================
+           ФОТО
+        ========================================================= */
+
         .image-block {
             position: absolute;
-            left: 70px;
+            left: 93px;
             top: 70px;
             display: block;
+            z-index: 1;
+
+            opacity: 0;
+            transform: translateY(25px);
+            animation: show 0.7s ease forwards;
+            animation-delay: 0.15s;
         }
+
         .image-block img {
             display: block;
-            height: 380px;
+            height: var(--photo-height);
             width: auto;
             max-width: 100%;
         }
 
-        .blocks-row {
-            position: absolute;
-            left: 230px;
-            right: 5vw;
-            top: var(--top-offset);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
+        /* =========================================================
+           ИМЯ
+        ========================================================= */
 
-        .block-item {
-            max-width: 90vw;
-        }
-
-        .text-content {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            font-family: 'Calibri', sans-serif;
-            font-size: 18px;
-            line-height: 1.5;
-            color: #333333c1;
-            margin: 0;
-            padding: 8px 12px;
-            max-height: 1200px;
-            box-sizing: border-box;
-            scrollbar-color: #888 #f0f0f0;
-        }
-
-        .text-line {
-            white-space: nowrap;
-            text-align: right;
-            width: 100%;
-        }
-
-        .text-line.heading {
-            font-size: 24px;
-            margin-bottom: 0.75em;
-            text-decoration: underline;
-            text-underline-offset: 5px;
-            text-decoration-thickness: 1px;
-            text-decoration-color: #888;
-        }
-
-        /* Тултипы – курсор стандартный */
-        .tooltip-trigger {
-            position: relative;
-            cursor: default;
-        }
-        .tooltip-text {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            bottom: 100%;
-            right: 0;
-            transform: translateY(-5px);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 16px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            pointer-events: none;
-            transition: opacity 0.2s, visibility 0.2s;
-            z-index: 10;
-            white-space: pre-line;
-            word-wrap: break-word;
-            width: max-content;
-            max-width: 90vw;
-        }
-        .tooltip-text::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            right: 10px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent;
-        }
-        .tooltip-trigger:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Стили для ссылок‑проектов */
-        .project-link {
-            display: block;
-            white-space: nowrap;
-            text-align: right;
-            width: 100%;
-            color: inherit;
-            text-decoration: none;
-            cursor: pointer;
-            transition: font-size 0.2s ease, transform 0.2s ease;
-            font-size: 18px;
-            transform: translateY(0);
-        }
-
-        .project-link:hover {
-            font-size: 20px;
-            transform: translateY(-3px);
-            z-index: 100;
-        }
-
-        /* Контактный блок */
-        .contact-block {
-            position: absolute;
-            left: 196px;
-            top: 50vh;
-            right: auto;
-            transform: none;
-        }
-
-        /* Стили для строк контактов */
-        .contact-line {
-            white-space: nowrap;
-            text-align: right;
-            width: 100%;
-            cursor: pointer;
-            transition: font-size 0.2s ease, transform 0.2s ease;
-            font-size: 18px;
-            transform: translateY(0);
-        }
-
-        .contact-line:hover {
-            font-size: 20px;
-            transform: translateY(-3px);
-            z-index: 100;
-        }
-
-        /* Блок имени */
         .name-block {
             position: absolute;
             right: 5vw;
             top: 80px;
-            transform: none;
             margin: 0;
             padding: 0;
+            z-index: 1;
+
+            opacity: 0;
+            transform: translateY(25px);
+            animation: show 0.7s ease forwards;
         }
+
         .name-block .name-inner {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             font-family: 'Calibri', sans-serif;
         }
+
         .name-block .name-line {
             font-size: 108px;
             color: #333333ce;
@@ -182,23 +85,391 @@
             white-space: nowrap;
         }
 
-        /* ========== БЛОКИ ДЛЯ СРЕДНИХ ЭКРАНОВ ========== */
+        html[lang="en"] .name-block .name-line {
+            /*
+             * На ширинах около 1300–1420px имя чуть меньше (от ~110px) — иначе справа
+             * не хватает места для превью при прокрутке. Дальше плавно растёт до 140px.
+             */
+            font-size: clamp(104px, calc(25vw - 215px), 140px);
+        }
+
+        /* =========================================================
+           ОСНОВНОЙ РЯД БЛОКОВ
+        ========================================================= */
+
+        .blocks-row {
+            position: absolute;
+            left: 230px;
+            right: 5vw;
+            top: var(--top-offset);
+
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            z-index: 2;
+        }
+
+        .blocks-row > .block-item {
+            flex: 0 0 auto;
+            max-width: 90vw;
+        }
+
+        .blocks-row > .block-item:nth-child(1) {
+            width: 190px;
+        }
+
+        .blocks-row > .block-item:nth-child(2) {
+            width: 190px;
+        }
+
+        .blocks-row > .block-item:nth-child(3) {
+            width: 300px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+
+        .blocks-row > .block-item:nth-child(4) {
+            width: 300px;
+        }
+
+        .blocks-row > .block-item .text-content {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* =========================================================
+           ОБЩИЕ ТЕКСТОВЫЕ БЛОКИ
+        ========================================================= */
+
+        .block-item {
+            max-width: 90vw;
+
+            opacity: 0;
+            transform: translateY(25px);
+            animation: show 0.7s ease forwards;
+        }
+
+        .blocks-row .block-item:nth-child(1) {
+            animation-delay: 0.45s;
+        }
+
+        .blocks-row .block-item:nth-child(2) {
+            animation-delay: 0.55s;
+        }
+
+        .blocks-row .block-item:nth-child(3) {
+            animation-delay: 0.65s;
+        }
+
+        .blocks-row .block-item:nth-child(4) {
+            animation-delay: 0.75s;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+
+            font-family: 'Calibri', sans-serif;
+            font-size: 18px;
+            line-height: 1.5;
+
+            color: #333333c1;
+
+            margin: 0;
+            padding: 8px 12px;
+
+            max-height: 1200px;
+            box-sizing: border-box;
+
+            scrollbar-color: #000000 #f0f0f0;
+        }
+        .text-line {
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .text-line.heading {
+            font-size: 24px;
+            margin-bottom: 0.75em;
+
+            text-decoration: underline;
+            text-underline-offset: 5px;
+            text-decoration-thickness: 1px;
+            text-decoration-color: #000000;
+        }
+
+        /* =========================================================
+           TOOLTIP
+        ========================================================= */
+
+        .tooltip-trigger {
+            position: relative;
+            cursor: default;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+
+            position: absolute;
+            bottom: 100%;
+            left: auto;
+            right: 0;
+
+            transform: translateY(-5px);
+
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+
+            font-size: 16px;
+
+            padding: 2px 6px;
+            border-radius: 4px;
+
+            pointer-events: none;
+
+            transition:
+                opacity 0.2s ease,
+                visibility 0.2s ease;
+
+            z-index: 10;
+
+            white-space: pre-line;
+            word-wrap: break-word;
+
+            width: max-content;
+            max-width: 90vw;
+        }
+
+        .blocks-row > .block-item:nth-child(1) .tooltip-text {
+            left: 0;
+            right: auto;
+        }
+        .blocks-row > .block-item:nth-child(1) .tooltip-text::after {
+            left: 20px;
+            right: auto;
+        }
+        .tooltip-text::after {
+            content: '';
+
+            position: absolute;
+            top: 100%;
+            right: 10px;
+
+            border-width: 5px;
+            border-style: solid;
+            border-color:
+                rgba(0, 0, 0, 0.7)
+                transparent
+                transparent
+                transparent;
+        }
+
+        .tooltip-trigger:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* =========================================================
+           ПРОЕКТЫ
+        ========================================================= */
+
+        .project-link {
+            display: block;
+
+            white-space: nowrap;
+            text-align: right;
+
+            /*
+             * Ширина по тексту, а не 100%: если строка длиннее колонки,
+             * она остаётся прижатой ко правому краю
+             * и выходит влево, а не вправо.
+             */
+            width: auto;
+
+            color: inherit;
+            text-decoration: none;
+
+            cursor: pointer;
+
+            /*
+             * Увеличение при наведении делается через transform (scale), а не через font-size:
+             * так браузер не пересчитывает вёрстку на каждом кадре, и анимация идёт плавно.
+             * Точка роста — правый край, чтобы текст не смещался влево.
+             */
+            transform-origin: right center;
+            will-change: transform;
+
+            transition:
+                transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+            font-size: 18px;
+            font-weight: 400;
+        }
+
+        .project-link:hover {
+            transform: translateY(-3px) scale(1.1);
+        }
+
+        /*
+         * Десктоп (от 1301px): столбик «Проекты» — чёрный, но не жирный:
+         * заголовок, его подчёркивание и названия проектов.
+         * Начертание тонкое (300), как у ФИО: чёрный цвет сам по себе
+         * выглядит тяжелее серого. Если нужно обычное начертание —
+         * замените 300 на 400. Чтобы вернуть оттенок как у ФИО,
+         * замените #000 на #333333ce.
+         */
+
+        @media (min-width: 1301px) {
+
+            .blocks-row > .block-item:nth-child(4) > .text-content {
+                color: #000;
+                font-weight: 300;
+            }
+
+            .blocks-row > .block-item:nth-child(4) > .text-content > .text-line.heading {
+                color: #000;
+                font-weight: 300;
+                text-decoration-color: #000;
+            }
+
+            .blocks-row > .block-item:nth-child(4) .project-link {
+                font-weight: 300;
+            }
+        }
+
+        /* =========================================================
+           КОНТАКТНЫЙ БЛОК
+        ========================================================= */
+
+        .programs-block {
+            position: relative;
+        }
+
+        .contact-block {
+            position: fixed;
+            right: 12px;
+            top: calc(70px + var(--photo-height) - var(--top-offset) - var(--contact-height) + var(--contact-drop));
+
+            z-index: 3;
+
+            opacity: 0;
+            transform: translateY(25px);
+            animation: show 0.7s ease forwards;
+            animation-delay: 0.3s;
+        }
+
+        .contact-block .text-content {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .contact-line {
+            white-space: nowrap;
+            text-align: right;
+
+            width: 100%;
+
+            cursor: pointer;
+
+            transition:
+                font-size 0.6s ease,
+                transform 0.6s ease;
+
+            font-size: 18px;
+
+            transform: translateY(0);
+
+            color: #333333c1;
+        }
+
+        .contact-line:hover {
+            font-size: 20px;
+            transform: translateY(-3px);
+            z-index: 100;
+        }
+
+        /* =========================================================
+           ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА
+        ========================================================= */
+
+        .block-item:last-child {
+            position: relative;
+        }
+
+        .lang-switch {
+            position: absolute;
+
+            right: 15px;
+            bottom: -120px;
+
+            font-family: 'Calibri', sans-serif;
+            font-size: clamp(16px, 0.9vw, 24px);
+            font-weight: 300;
+
+            color: #333;
+
+            white-space: nowrap;
+
+            z-index: 10;
+
+            text-align: right;
+            width: 100%;
+        }
+
+        .lang-switch a {
+            text-decoration: none;
+            color: #333;
+
+            border-bottom: 1px dashed #ccc;
+
+            transition: all 0.2s ease;
+
+            cursor: pointer;
+        }
+
+        .lang-switch a:hover {
+            color: #000;
+            border-bottom-color: #000;
+        }
+
+        .lang-switch .active {
+            font-weight: 700;
+            color: #000;
+
+            cursor: default;
+
+            border-bottom: none;
+        }
+
+        /* =========================================================
+           СРЕДНИЕ ЭКРАНЫ
+        ========================================================= */
+
         .medium-left-group,
         .medium-right-group {
             position: absolute;
+
             top: var(--top-offset);
-            display: none;           /* по умолчанию скрыты */
+
+            display: none;
+
             flex-direction: column;
             gap: 20px;
         }
 
         .medium-left-group {
-            left: 190px;               /* привязан к левому краю, как у картинки */
+            left: 190px;
             right: auto;
         }
 
         .medium-right-group {
-            right: 5vw;               /* привязан к правому краю */
+            right: 5vw;
             left: auto;
         }
 
@@ -207,296 +478,2256 @@
             max-width: none;
         }
 
-        /* ========== ПРОМЕЖУТОЧНАЯ ВЕРСИЯ (от 769px до 1100px) ========== */
-        @media (min-width: 769px) and (max-width: 1100px) {
-            /* Показываем оба новых блока */
-            .medium-left-group,
-            .medium-right-group {
-                display: flex;
+        /* =========================================================
+           АНИМАЦИЯ ПЕРЕВОДА
+        ========================================================= */
+
+        [data-i18n],
+        [data-i18n-alt] {
+            transition:
+                opacity 0.28s ease,
+                transform 0.28s ease;
+        }
+
+        .i18n-hide {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        .i18n-show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================================================
+           АНИМАЦИЯ ПОЯВЛЕНИЯ СТРАНИЦЫ
+        ========================================================= */
+
+        body {
+            opacity: 0;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
             }
 
-            /* Скрываем все исходные блоки в .blocks-row */
-            .blocks-row .block-item {
-                display: none;
-            }
-
-            /* Уменьшаем максимальную ширину имени и шрифт */
-            .name-block {
-                max-width: 35vw;
-                top: 150px;
-            }
-            .name-block .name-line {
-                font-size: 72px;
+            to {
+                opacity: 1;
             }
         }
 
-        /* ========== МОБИЛЬНАЯ ВЕРСИЯ (до 768px) ========== */
-        @media (max-width: 768px) {
-            /* Скрываем новые блоки */
+        @keyframes show {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =========================================================
+           СКРЫТИЕ ПРИ СМЕНЕ ЯЗЫКА
+        ========================================================= */
+
+        body.language-changing .name-block,
+        body.language-changing .blocks-row,
+        body.language-changing .medium-left-group,
+        body.language-changing .medium-right-group {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transition: none !important;
+        }
+
+        /* =========================================================
+           УВЕДОМЛЕНИЕ О КОПИРОВАНИИ
+        ========================================================= */
+
+        .copy-toast {
+            overflow: hidden;
+
+            position: fixed;
+
+            bottom: 25px;
+            right: 25px;
+
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+
+            padding: 12px 18px 12px 46px;
+
+            border-radius: 10px;
+
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+
+            font-family: Calibri, sans-serif;
+            font-size: 16px;
+
+            opacity: 0;
+
+            transform: translateY(20px);
+
+            transition:
+                opacity 0.3s ease,
+                transform 0.3s ease;
+
+            pointer-events: none;
+
+            z-index: 9999;
+        }
+
+        .copy-toast::before {
+            content: "📋";
+
+            position: absolute;
+
+            left: 14px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            font-size: 18px;
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================================================
+           ЭКРАНЫ 1700+
+        ========================================================= */
+
+        @media (min-width: 1700px) {
+
+            .name-block .name-line {
+                font-size: 135px;
+            }
+
+            :root {
+                --photo-height: 460px;
+                --contact-height: 66px;
+                --contact-drop: 8px;
+            }
+
+            .text-content {
+                font-size: 22px;
+            }
+
+            .text-line.heading {
+                font-size: 30px;
+            }
+
+            .project-link,
+            .contact-line {
+                font-size: 22px;
+            }
+
+            .contact-line:hover {
+                font-size: 24px;
+            }
+        }
+
+        /* =========================================================
+           ЭКРАНЫ 2400+
+        ========================================================= */
+
+        @media (min-width: 2400px) {
+
+            .name-block .name-line {
+                font-size: 170px;
+            }
+
+            :root {
+                --photo-height: 600px;
+                --contact-height: 84px;
+                --contact-drop: 10px;
+            }
+
+            .text-content {
+                font-size: 28px;
+            }
+
+            .text-line.heading {
+                font-size: 38px;
+            }
+
+            .project-link,
+            .contact-line {
+                font-size: 28px;
+            }
+
+            .contact-line:hover {
+                font-size: 31px;
+            }
+        }
+
+        /* =========================================================
+           КОМПАКТНАЯ ВЕРСИЯ: ТЕЛЕФОН И СРЕДНИЕ ЭКРАНЫ (1300 И МЕНЬШЕ)
+        ========================================================= */
+
+        /*
+         * На телефоне страница — одна колонка на основе десктопной:
+         *
+         *                    ENG / RU
+         *   [ фото ]  [ имя      ]
+         *   [      ]  [ контакты ]   <- контакты по низу фото
+         *   Проекты: карточки с превью
+         *   Образование / Участие / Программы  (сворачиваются по нажатию)
+         *
+         * Блоки ряда (.blocks-row, .block-item) «растворяются» через
+         * display: contents, а их содержимое раскладывается
+         * сеткой на <body> по именованным областям.
+         */
+
+        @media (max-width: 1300px) {
+
             .medium-left-group,
             .medium-right-group {
                 display: none;
             }
 
-            /* Сбрасываем абсолютное позиционирование у всех основных блоков */
+            html {
+                -webkit-text-size-adjust: 100%;
+            }
+
+            html,
             body {
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
-                padding: 20px;
                 height: auto;
                 position: static;
             }
 
-            .image-block,
-            .contact-block,
-            .blocks-row,
-            .name-block {
-                position: static;
-                left: auto;
-                right: auto;
-                top: auto;
-                bottom: auto;
-                transform: none;
-                width: 100%;
-                max-width: 100%;
-                margin: 10px 0;
-            }
+            body {
+                display: grid;
 
-            /* Все блоки получают одинаковую максимальную ширину и центрируются */
-            .image-block,
-            .name-block,
-            .contact-block,
-            .blocks-row .block-item {
-                max-width: 300px;
-                margin-left: auto;
-                margin-right: auto;
-            }
+                grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+                grid-template-rows: auto auto 1fr repeat(4, auto);
+                grid-template-areas:
+                    "lang     lang"
+                    "photo    name"
+                    "photo    contacts"
+                    "projects projects"
+                    "edu      edu"
+                    "part     part"
+                    "prog     prog";
 
-            /* Фото */
-            .image-block {
-                order: 1;
-                text-align: center;
-            }
-            .image-block img {
-                height: auto;
+                column-gap: 20px;
+
                 width: 100%;
-                max-width: 300px;
+                max-width: 560px;
+                min-height: 100vh;
                 margin: 0 auto;
+                padding:
+                    14px
+                    20px
+                    calc(40px + env(safe-area-inset-bottom, 0px));
+
+                box-sizing: border-box;
             }
 
-            /* Имя */
+            /* -----------------------------------------------------
+               ФОТО
+            ----------------------------------------------------- */
+
+            .image-block {
+                position: static;
+                grid-area: photo;
+                align-self: start;
+            }
+
+            .image-block img {
+                width: 100%;
+                height: auto;
+                max-width: none;
+            }
+
+            /* -----------------------------------------------------
+               ИМЯ
+            ----------------------------------------------------- */
+
             .name-block {
-                order: 2;
-                text-align: center;
-            }
-            .name-block .name-inner {
-                align-items: flex-end;
-            }
-            .name-block .name-line {
-                font-size: 48px;
-                white-space: normal;
-                line-height: 1.1;
-                text-align: right;
+                position: static;
+                grid-area: name;
+                align-self: start;
+                justify-self: end;
+                max-width: none;
             }
 
-            /* Контакты */
-            .contact-block {
-                order: 3;
-                text-align: center;
-            }
-            .contact-block .text-content {
-                align-items: flex-end;
-            }
-            .contact-line {
-                text-align: right;
-                white-space: normal;
+            .name-block .name-line,
+            html[lang="en"] .name-block .name-line {
+                font-size: clamp(28px, 10.6vw, 54px);
+                line-height: 1.12;
             }
 
-            /* Контейнер с блоками */
-            .blocks-row {
-                order: 4;
+            /* -----------------------------------------------------
+               КОНТАКТЫ (по низу фото, как на десктопе)
+            ----------------------------------------------------- */
+
+            .blocks-row > .block-item:nth-child(2) > .contact-block {
+                position: static;
+                grid-area: contacts;
+                align-self: end;
+                justify-self: end;
+            }
+
+            .contact-line,
+            .contact-line:hover {
+                font-size: clamp(13px, 3.9vw, 16px);
+                transform: none;
+            }
+
+            /* -----------------------------------------------------
+               БЛОКИ РЯДА — раскладываются по областям сетки
+            ----------------------------------------------------- */
+
+            .blocks-row,
+            .blocks-row > .block-item:nth-child(n) {
+                display: contents;
+            }
+
+            .blocks-row > .block-item:nth-child(1) > .text-content {
+                grid-area: edu;
+            }
+
+            .blocks-row > .block-item:nth-child(2) > .text-content {
+                grid-area: prog;
+            }
+
+            .blocks-row > .block-item:nth-child(3) > .text-content {
+                grid-area: part;
+            }
+
+            .blocks-row > .block-item:nth-child(4) > .text-content {
+                grid-area: projects;
+            }
+
+            .blocks-row > .block-item:nth-child(4) > .lang-switch {
+                grid-area: lang;
+            }
+
+            .blocks-row > .block-item > .text-content {
+                width: 100%;
+                margin-top: 38px;
+                padding: 0;
+                max-height: none;
+
+                align-items: flex-start;
+
+                font-size: 16px;
+                line-height: 1.45;
+                color: #555;
+
+                opacity: 0;
+                animation: show 0.7s ease forwards;
+                animation-delay: 0.45s;
+            }
+
+            /* -----------------------------------------------------
+               ЗАГОЛОВКИ РАЗДЕЛОВ — тонкая линия во всю ширину
+            ----------------------------------------------------- */
+
+            .text-line.heading {
+                align-self: stretch;
+                text-align: left;
+
+                font-size: 20px;
+                font-weight: 400;
+                color: #333;
+
+                margin-bottom: 16px;
+                padding-bottom: 9px;
+
+                text-decoration: none;
+                border-bottom: 1px solid #c9c9c9;
+            }
+
+            /* -----------------------------------------------------
+               СТРОКИ: название + подпись
+               (подсказки по наведению на телефоне не работают,
+               поэтому выводим их всегда под названием)
+            ----------------------------------------------------- */
+
+            .text-line {
+                white-space: normal;
+                text-align: left;
+                margin-bottom: 14px;
+            }
+
+            .text-line:last-child {
+                margin-bottom: 0;
+            }
+
+            .text-line:not(.heading) {
+                font-size: 17px;
+                color: #333;
+            }
+
+            .tooltip-trigger {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
-                align-items: stretch;
+                align-items: flex-start;
             }
 
-            /* Переопределяем порядок дочерних блоков внутри .blocks-row */
-            .block-item {
+            .tooltip-text {
+                position: static;
+                visibility: visible;
+                opacity: 1;
+                transform: none;
+
+                width: auto;
                 max-width: 100%;
-                width: 100%;
-            }
-            .block-item:nth-child(4) { order: 1; } /* Проекты */
-            .block-item:nth-child(3) { order: 2; } /* Участие */
-            .block-item:nth-child(1) { order: 3; } /* Образование */
-            .block-item:nth-child(2) { order: 4; } /* Программы */
 
-            /* Текст в блоках – по правому краю */
-            .text-content {
-                align-items: flex-end;
-                padding: 5px 10px;
-            }
-            .text-line,
-            .project-link {
+                margin-top: 2px;
+                padding: 0;
+
+                background: none;
+                color: #888;
+
+                font-size: 14px;
+                line-height: 1.35;
                 white-space: normal;
+
+                pointer-events: auto;
+            }
+
+            .tooltip-text::after {
+                display: none;
+            }
+
+            /* -----------------------------------------------------
+               ПРОГРАММЫ — слова в ряд
+            ----------------------------------------------------- */
+
+            .blocks-row > .block-item:nth-child(2) > .text-content {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 8px 24px;
+            }
+
+            .blocks-row > .block-item:nth-child(2) > .text-content > .text-line.heading {
+                flex: 0 0 100%;
+                margin-bottom: 8px;
+            }
+
+            .blocks-row > .block-item:nth-child(2) > .text-content > .text-line:not(.heading) {
+                margin: 0;
+                padding: 0;
+
+                font-size: 16px;
+                line-height: 1.4;
+                color: #555;
+
+                white-space: nowrap;
+            }
+
+            /* -----------------------------------------------------
+               ПРОЕКТЫ — карточки с превью
+               (те же картинки, что в превью на десктопе)
+            ----------------------------------------------------- */
+
+            .blocks-row > .block-item:nth-child(4) > .text-content > .text-line.heading {
+                margin-bottom: 18px;
+            }
+
+            .project-link {
+                --card-image: none;
+
+                align-self: stretch;
+
+                display: flex;
+                align-items: flex-end;
+                justify-content: flex-start;
+
+                box-sizing: border-box;
+
+                aspect-ratio: 16 / 9;
+                margin-bottom: 14px;
+                padding: 14px 16px;
+
+                border-radius: 4px;
+                overflow: hidden;
+
+                background-color: #999;
+                background-image:
+                    linear-gradient(
+                        to top,
+                        rgba(0, 0, 0, 0.6),
+                        rgba(0, 0, 0, 0) 60%
+                    ),
+                    var(--card-image);
+                background-size: cover;
+                background-position: center;
+
+                color: #fff;
+                font-size: 19px;
+                line-height: 1.25;
+                font-weight: 400;
+                text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+
+                white-space: normal;
+                text-align: left;
+
+                transition: transform 0.25s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .project-link:hover {
+                transform: none;
+            }
+
+            .project-link:active {
+                transform: scale(0.985);
+            }
+
+            .project-link:last-child {
+                margin-bottom: 0;
+            }
+
+            .project-link:nth-of-type(1) {
+                --card-image: url("tree_revolution/photo_2024-08-09_23-47-07.jpg");
+            }
+
+            .project-link:nth-of-type(2) {
+                --card-image: url("theatre/theatre_wide.jpg");
+            }
+
+            .project-link:nth-of-type(3) {
+                --card-image: url("ski_resort/ski_1.jpg");
+            }
+
+            .project-link:nth-of-type(4) {
+                --card-image: url("rhino/rhino_2.jpg");
+            }
+
+            .project-link:nth-of-type(5) {
+                --card-image: url("slicer/en/slide_6_page-0001.jpg");
+            }
+
+            /* Русская версия — картинки с русскими надписями */
+
+            html[lang="ru"] .project-link:nth-of-type(2) {
+                --card-image: url("theatre/ru/theatre_wide.jpg");
+            }
+
+            html[lang="ru"] .project-link:nth-of-type(3) {
+                --card-image: url("ski_resort/ru/ski_1.jpg");
+            }
+
+            html[lang="ru"] .project-link:nth-of-type(5) {
+                --card-image: url("slicer/ru/slide_6_page-0001.jpg");
+            }
+
+            /* -----------------------------------------------------
+               СВОРАЧИВАЕМЫЕ РАЗДЕЛЫ (Образование, Участие, Программы)
+               Нажатие на заголовок сворачивает и разворачивает раздел.
+               Только на телефоне (до 768px). Логика — в скрипте внизу страницы.
+            ----------------------------------------------------- */
+
+            @media (max-width: 768px) {
+
+            .blocks-row > .block-item:not(:nth-child(4)) > .text-content > .text-line.heading {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .blocks-row > .block-item:not(:nth-child(4)) > .text-content > .text-line.heading::after {
+                content: "";
+                flex: 0 0 auto;
+                margin-left: 12px;
+
+                /* Та же стрелка-«галочка», что внизу десктопной версии */
+                width: 28px;
+                height: 28px;
+                background:
+                    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28' fill='none'%3E%3Cpolyline points='5,10 14,19 23,10' stroke='%23333' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+                    center / contain no-repeat;
+
+                transition: transform 0.3s ease;
+            }
+
+            .blocks-row > .block-item > .text-content > .text-line.heading.is-closed::after {
+                transform: rotate(-90deg);
+            }
+
+            .blocks-row > .block-item > .text-content.is-collapsed > .text-line.heading {
+                margin-bottom: 0 !important;
+            }
+
+            .blocks-row > .block-item > .text-content.is-collapsed > .text-line:not(.heading) {
+                display: none;
+            }
+
+            } /* конец «сворачиваемые разделы только на телефоне» */
+
+            /* -----------------------------------------------------
+               ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА (самый верх страницы)
+            ----------------------------------------------------- */
+
+            .blocks-row > .block-item:nth-child(4) > .lang-switch {
+                position: static !important;
+
+                justify-self: end;
+
+                width: auto;
+                margin: 0 0 14px;
+
+                font-size: 15px;
                 text-align: right;
             }
 
-            /* Убираем лишние абсолютные элементы, если они мешают */
-            [style*="position: absolute"] {
-                position: static !important;
+            .lang-switch a,
+            .lang-switch a:hover {
+                display: inline-block;
+                padding: 8px 4px;
+                border: none;
+            }
+
+            /*
+             * Подсказка о копировании — только на телефоне
+             * (на средних экранах остаётся обычное, в правом нижнем углу).
+             */
+
+            @media (max-width: 768px) {
+
+                .copy-toast {
+                    left: 20px;
+                    right: 20px;
+                    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+
+                    text-align: center;
+                }
+            }
+        }
+
+        /* =========================================================
+           СРЕДНИЕ ЭКРАНЫ (769–1300): ПЛАНШЕТ И УЗКОЕ ОКНО НА ПК
+        ========================================================= */
+
+        /*
+         * Та же вёрстка, что на телефоне (предыдущий блок), но шире:
+         *
+         *                          ENG / RU
+         *   [ фото ]   [ имя                    ]
+         *   [      ]   [ контакты             ]
+         *   Проекты: карточки сеткой (2–3 в ряд)
+         *   Образование | Участие | Программы  (три колонки, без сворачивания)
+         */
+
+        @media (min-width: 769px) and (max-width: 1300px) {
+
+            body {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-rows: auto auto 1fr auto auto;
+                grid-template-areas:
+                    "lang     lang     lang"
+                    "photo    name     name"
+                    "photo    contacts contacts"
+                    "projects projects projects"
+                    "edu      part     prog";
+
+                column-gap: 32px;
+
+                max-width: 1040px;
+                padding:
+                    24px
+                    44px
+                    calc(48px + env(safe-area-inset-bottom, 0px));
+            }
+
+            /* Имя больше, чем на телефоне (и одинаково для русского и английского) */
+            .name-block .name-line,
+            html[lang="en"] .name-block .name-line {
+                font-size: clamp(56px, 9vw, 92px);
+            }
+
+            .contact-line,
+            .contact-line:hover {
+                font-size: 17px;
+            }
+
+            .blocks-row > .block-item > .text-content {
+                align-self: start;
+                margin-top: 46px;
+            }
+
+            .text-line:not(.heading) {
+                font-size: 17px;
+            }
+
+            /* Программы — списком в своей колонке */
+            .blocks-row > .block-item:nth-child(2) > .text-content {
+                flex-direction: column;
+                flex-wrap: nowrap;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .blocks-row > .block-item:nth-child(2) > .text-content > .text-line.heading {
+                flex: none;
+                margin-bottom: 10px;
+            }
+
+            .blocks-row > .block-item:nth-child(2) > .text-content > .text-line:not(.heading) {
+                font-size: 17px;
+            }
+
+            /* Проекты — карточки сеткой: сколько влезает в ряд */
+            .blocks-row > .block-item:nth-child(4) > .text-content {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+                gap: 18px;
+                align-items: start;
+            }
+
+            .blocks-row > .block-item:nth-child(4) > .text-content > .text-line.heading {
+                grid-column: 1 / -1;
+                margin-bottom: 0;
+            }
+
+            .project-link,
+            .project-link:last-child {
+                margin-bottom: 0;
+                font-size: 18px;
+            }
+
+            .blocks-row > .block-item:nth-child(4) > .lang-switch {
+                font-size: 16px;
             }
         }
     </style>
+
+    <link rel="stylesheet" href="cv-previews.css">
 </head>
+
 <body>
 
-    <!-- Контактный блок с двумя строками -->
-    <div class="contact-block">
-        <div class="text-content">
-            <div class="contact-line">89688673903</div>
-            <div class="contact-line">mixailv8968@gmail.com</div>
-        </div>
-    </div>
+    <!-- =========================================================
+         ИМЯ
+    ========================================================== -->
 
-    <!-- Исходный контейнер с четырьмя блоками (будет скрыт на средних экранах) -->
-    <div class="blocks-row">
-        <div class="block-item">
-            <div class="text-content">
-                <div class="text-line heading">Education:</div>
-                <div class="text-line tooltip-trigger"> 
-                    MCAUP 2018-2021
-                    <span class="tooltip-text">Moscow College of Architecture and Urban Planning</span>
-                </div>
-                <div class="text-line tooltip-trigger">
-                    MARCHI 2020-2025
-                    <span class="tooltip-text">Moscow Architectural Institute</span>
-                </div>
-            </div>
-        </div>
-        <div class="block-item">
-            <div class="text-content">
-                <div class="text-line heading">Programs:</div>
-                <div class="text-line">Revit</div>
-                <div class="text-line">Archicad</div>
-                <div class="text-line">Photoshop</div>
-                <div class="text-line">Indesign</div>
-                <div class="text-line">Rhino + Grasshopper</div>
-            </div>
-        </div>
-        <div class="block-item">
-            <div class="text-content">
-                <div class="text-line heading">Participation:</div>
-                <div class="text-line tooltip-trigger">
-                    Open Workshop
-                    <span class="tooltip-text">Architectural workshop participant </span>
-                </div>
-                <div class="text-line tooltip-trigger">
-                    Head of Tech Studio MARCHI
-                    <span class="tooltip-text">Head of Department, Student Council, MARCHI</span>
-                </div>
-                <div class="text-line tooltip-trigger">
-                    Member of Dramm Studio MARCHI
-                    <span class="tooltip-text">Actor and set designer of the student theater of MARCHI</span>
-                </div>
-            </div>
-        </div>
-        <div class="block-item">
-            <div class="text-content" style="color: #000000;">
-                <div class="text-line heading">Projects:</div>
-                <a href="Практикум Древолюзия.html" class="project-link">Treevolution 2024</a>
-                <a href="Театр.html" class="project-link">Theater</a>
-                <a href="Горнолыжный курорт.html" class="project-link">Ski Resort</a>
-                <a href="Плагин.html" class="project-link">Plugin for Rhino + Grasshopper</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- НОВЫЙ ЛЕВЫЙ БЛОК для средних экранов: Образование, Участие, Программы -->
-    <div class="medium-left-group">
-        <div class="block-item">
-            <div class="text-content">
-                <div class="text-line heading">Education:</div>
-                <div class="text-line tooltip-trigger"> 
-                    MCAUP 2018-2021
-                    <span class="tooltip-text">Moscow College of Architecture and Urban Planning</span>
-                </div>
-                <div class="text-line tooltip-trigger">
-                    MARCHI 2020-2025
-                    <span class="tooltip-text">Moscow Architectural Institute</span>
-                </div>
-            </div>
-        </div>
-        <div class="block-item">
-            <div class="text-content">
-                <div class="text-line heading">Participation:</div>
-                <div class="text-line tooltip-trigger">
-                    Open Workshop
-                    <span class="tooltip-text">Architectural workshop participant </span>
-                </div>
-                <div class="text-line tooltip-trigger">
-                    Head of Tech Studio MARCHI
-                    <span class="tooltip-text">Head of Department, Student Council, MARCHI</span>
-                </div>
-                <div class="text-line tooltip-trigger">
-                    Member of Dramm Studio MARCHI
-                    <span class="tooltip-text">Actor and set designer of the student theater of MARCHI</span>
-                </div>
-            </div>
-        </div>
-        <div class="block-item">
-            <div class="text-content">
-                <div class="text-line heading">Programs:</div>
-                <div class="text-line">Revit</div>
-                <div class="text-line">Archicad</div>
-                <div class="text-line">Photoshop</div>
-                <div class="text-line">Indesign</div>
-                <div class="text-line">Rhino + Grasshopper</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- НОВЫЙ ПРАВЫЙ БЛОК для средних экранов: Проекты -->
-    <div class="medium-right-group">
-        <div class="block-item">
-            <div class="text-content" style="color: #000000;">
-                <div class="text-line heading">Projects:</div>
-                <a href="Практикум Древолюзия.html" class="project-link">Treevolution 2024</a>
-                <a href="Театр.html" class="project-link">Theater</a>
-                <a href="Горнолыжный курорт.html" class="project-link">Ski Resort</a>
-                <a href="Плагин.html" class="project-link">Plugin for Rhino + Grasshopper</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Блок имени -->
     <div class="name-block">
         <div class="name-inner">
-            <div class="name-line">Garkusha</div>
-            <div class="name-line">Mikhail</div>
-            <div class="name-line">Viktorovich</div>
+
+            <div
+                class="name-line"
+                data-i18n="surname">
+            </div>
+
+            <div
+                class="name-line"
+                data-i18n="name">
+            </div>
+
         </div>
     </div>
 
-    <!-- Картинка -->
-    <div class="image-block">
-        <img src="me.JPG" alt="My photo">
+
+    <!-- =========================================================
+         ОСНОВНОЙ РЯД
+    ========================================================== -->
+
+    <div class="blocks-row">
+
+        <!-- ===================== EDUCATION ===================== -->
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="education">
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="mcaupTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="mcaup">
+                    </span>
+
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="marchiTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="marchi">
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================== PROGRAMS ===================== -->
+
+        <div class="block-item programs-block">
+
+            <!-- CONTACTS -->
+
+            <div class="contact-block">
+
+                <div class="text-content">
+
+                    <div class="contact-line" data-i18n="phone">
+                        +77076956087
+                    </div>
+
+                    <div class="contact-line">
+                        mixailv8968@gmail.com
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROGRAMS -->
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="programs">
+                </div>
+
+                <div class="text-line">
+                    Revit
+                </div>
+
+                <div class="text-line">
+                    Archicad
+                </div>
+
+                <div class="text-line">
+                    Photoshop
+                </div>
+
+                <div class="text-line">
+                    Indesign
+                </div>
+
+                <div class="text-line">
+                    Rhino + Grasshopper
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================== PARTICIPATION ===================== -->
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="participation">
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="openWorkshopTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="openWorkshop">
+                    </span>
+
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="techStudioTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="techStudio">
+                    </span>
+
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="drammStudioTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="drammStudio">
+                    </span>
+
+                </div>
+
+                <div class="text-line">
+
+                    <span data-i18n="uzbekistanTitle"></span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================== PROJECTS ===================== -->
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="projects">
+                </div>
+
+                <a
+                    href="TREE_REVOLUTION.html"
+                    class="project-link"
+                    data-i18n="project1">
+                </a>
+
+                <a
+                    href="Teatre.html"
+                    class="project-link"
+                    data-i18n="project2">
+                </a>
+
+                <a
+                    href="Ski_resort_2.html"
+                    class="project-link"
+                    data-i18n="project3">
+                </a>
+
+                <a
+                    href="Plugin.html"
+                    class="project-link"
+                    data-i18n="project4">
+                </a>
+
+                <a
+                    href="Slicer.html"
+                    class="project-link"
+                    data-i18n="project5">
+                </a>
+
+            </div>
+
+
+            <!-- LANGUAGE SWITCH -->
+
+            <span class="lang-switch">
+
+                <a
+                    href="#"
+                    class="lang-eng active">
+                    ENG
+                </a>
+
+                /
+
+                <a
+                    href="#"
+                    class="lang-ru">
+                    RU
+                </a>
+
+            </span>
+
+        </div>
+
     </div>
 
-    <!-- Скрипт для копирования текста -->
+
+    <!-- =========================================================
+         СРЕДНИЕ ЭКРАНЫ — ЛЕВАЯ ЧАСТЬ
+    ========================================================== -->
+
+    <div class="medium-left-group">
+
+        <!-- EDUCATION -->
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="education">
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="mcaupTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="mcaup">
+                    </span>
+
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="marchiTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="marchi">
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PARTICIPATION -->
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="participation">
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="openWorkshopTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="openWorkshop">
+                    </span>
+
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="techStudioTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="techStudio">
+                    </span>
+
+                </div>
+
+                <div class="text-line tooltip-trigger">
+
+                    <span data-i18n="drammStudioTitle"></span>
+
+                    <span
+                        class="tooltip-text"
+                        data-i18n="drammStudio">
+                    </span>
+
+                </div>
+
+                <div class="text-line">
+
+                    <span data-i18n="uzbekistanTitle"></span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PROGRAMS -->
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="programs">
+                </div>
+
+                <div class="text-line">
+                    Revit
+                </div>
+
+                <div class="text-line">
+                    Archicad
+                </div>
+
+                <div class="text-line">
+                    Photoshop
+                </div>
+
+                <div class="text-line">
+                    Indesign
+                </div>
+
+                <div class="text-line">
+                    Rhino + Grasshopper
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         СРЕДНИЕ ЭКРАНЫ — ПРАВАЯ ЧАСТЬ
+    ========================================================== -->
+
+    <div class="medium-right-group">
+
+        <div class="block-item">
+
+            <div class="text-content">
+
+                <div
+                    class="text-line heading"
+                    data-i18n="projects">
+                </div>
+
+                <a
+                    href="TREE_REVOLUTION.html"
+                    class="project-link"
+                    data-i18n="project1">
+                </a>
+
+                <a
+                    href="Teatre.html"
+                    class="project-link"
+                    data-i18n="project2">
+                </a>
+
+                <a
+                    href="Ski_resort_2.html"
+                    class="project-link"
+                    data-i18n="project3">
+                </a>
+
+                <a
+                    href="Plugin.html"
+                    class="project-link"
+                    data-i18n="project4">
+                </a>
+
+                <a
+                    href="Slicer.html"
+                    class="project-link"
+                    data-i18n="project5">
+                </a>
+
+            </div>
+
+
+            <span class="lang-switch">
+
+                <a
+                    href="#"
+                    class="lang-eng active">
+                    ENG
+                </a>
+
+                /
+
+                <a
+                    href="#"
+                    class="lang-ru">
+                    RU
+                </a>
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         ФОТО
+    ========================================================== -->
+
+    <div class="image-block">
+
+        <img
+            src="me2.JPG"
+            alt="My photo"
+            data-i18n-alt="photo">
+
+    </div>
+
+
+    <!-- =========================================================
+         УВЕДОМЛЕНИЕ О КОПИРОВАНИИ
+    ========================================================== -->
+
+    <div
+        class="copy-toast"
+        id="copyToast">
+    </div>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
+
     <script>
-        document.querySelectorAll('.contact-line').forEach(line => {
-            line.addEventListener('click', function() {
-                const textToCopy = this.innerText;
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    alert('Скопировано: ' + textToCopy);
-                }).catch(err => {
-                    console.error('Ошибка копирования: ', err);
+
+        /* =========================================================
+           УВЕДОМЛЕНИЕ О КОПИРОВАНИИ
+        ========================================================== */
+
+        const copyToast = document.getElementById("copyToast");
+
+        let toastTimer = null;
+
+
+        function showCopyToast() {
+
+            copyToast.textContent =
+                document.documentElement.lang === "ru"
+                    ? "✓ Скопировано"
+                    : "✓ Copied";
+
+            copyToast.classList.add("show");
+
+            clearTimeout(toastTimer);
+
+            toastTimer = setTimeout(() => {
+                copyToast.classList.remove("show");
+            }, 1500);
+        }
+
+
+        /*
+         * Надёжное копирование.
+         * Сначала используется Clipboard API.
+         * Если браузер не разрешает его — используется fallback.
+         */
+
+        async function copyText(text) {
+
+            try {
+
+                if (
+                    navigator.clipboard &&
+                    window.isSecureContext
+                ) {
+                    await navigator.clipboard.writeText(text);
+                    showCopyToast();
+                    return;
+                }
+
+            } catch (error) {
+                console.warn(
+                    "Clipboard API failed:",
+                    error
+                );
+            }
+
+
+            /*
+             * Fallback для случаев, когда Clipboard API
+             * недоступен.
+             */
+
+            const textarea = document.createElement("textarea");
+
+            textarea.value = text;
+
+            textarea.style.position = "fixed";
+            textarea.style.left = "-9999px";
+            textarea.style.top = "0";
+
+            document.body.appendChild(textarea);
+
+            textarea.focus();
+            textarea.select();
+
+            try {
+                document.execCommand("copy");
+                showCopyToast();
+            } catch (error) {
+                console.warn(
+                    "Fallback copy failed:",
+                    error
+                );
+            }
+
+            textarea.remove();
+        }
+
+
+        document
+            .querySelectorAll(".contact-line")
+            .forEach(line => {
+
+                line.addEventListener("click", () => {
+
+                    copyText(
+                        line.textContent.trim()
+                    );
+
+                });
+
+            });
+
+
+        /* =========================================================
+           ПЕРЕВОДЫ
+        ========================================================== */
+
+        const translations = {
+
+            en: {
+
+                surname: "Garkusha",
+                name: "Mikhail",
+
+                education: "Education:",
+                programs: "Programs:",
+                participation: "Participation:",
+                projects: "Projects:",
+
+                project1: "Treevolution 2024",
+                project2: "Theater",
+                project3: "Ski Resort",
+                project4: "Plugin for Rhino + Grasshopper",
+                project5: "Slicer",
+
+                mcaup:
+                    "Moscow College of Architecture and Urban Planning",
+
+                marchi:
+                    "Moscow Architectural Institute",
+
+                openWorkshop:
+                    "Architectural workshop participant",
+
+                techStudio:
+                    "Head of Department, Student Council, MARCHI",
+
+                drammStudio:
+                    "Actor and set designer of the student theater of MARCHI",
+
+                phone:
+                    "+77076956087",
+
+                photo:
+                    "My photo",
+
+                mcaupTitle:
+                    "MCAUP 2018–2021",
+
+                marchiTitle:
+                    "MARCHI 2020–2025",
+
+                openWorkshopTitle:
+                    "Open Workshop",
+
+                techStudioTitle:
+                    "Head of Tech Studio MARCHI",
+
+                drammStudioTitle:
+                    "Member of Drama Studio MARCHI",
+
+                uzbekistanTitle:
+                    "Recreation Center in Uzbekistan"
+            },
+
+
+            ru: {
+
+                surname: "Гаркуша",
+                name: "Михаил",
+
+                education: "Образование:",
+                programs: "Программы:",
+                participation: "Участие:",
+                projects: "Проекты:",
+
+                project1:
+                    "Практикум Древолюция",
+
+                project2:
+                    "Театр",
+
+                project3:
+                    "Горнолыжный курорт",
+
+                project4:
+                    "Плагин для Rhino + Grasshopper",
+
+                project5:
+                    "Слайсер",
+
+                mcaup:
+                    "Московский колледж архитектуры и градостроительства",
+
+                marchi:
+                    "Московский архитектурный институт",
+
+                openWorkshop:
+                    "Участник архитектурной мастерской",
+
+                techStudio:
+                    "Руководитель Тех-студии МАРХИ",
+
+                drammStudio:
+                    "Актер и сценограф студенческого театра МАРХИ",
+
+                phone:
+                    "+79688673903",
+
+                photo:
+                    "Мое фото",
+
+                mcaupTitle:
+                    "МКАГ 2018–2021",
+
+                marchiTitle:
+                    "МАРХИ 2020–2025",
+
+                openWorkshopTitle:
+                    "Открытая мастерская",
+
+                techStudioTitle:
+                    "Руководитель Тех-студии МАРХИ",
+
+                drammStudioTitle:
+                    "Участник театральной студии МАРХИ",
+
+                uzbekistanTitle:
+                    "База отдыха в Узбекистане"
+            }
+
+        };
+
+
+        /* =========================================================
+           ЭЛЕМЕНТЫ ЯЗЫКА
+        ========================================================== */
+
+        const engButtons =
+            document.querySelectorAll(".lang-eng");
+
+        const ruButtons =
+            document.querySelectorAll(".lang-ru");
+
+
+        /*
+         * ВАЖНО:
+         *
+         * Раньше здесь использовался
+         *
+         * document.documentElement.lang === lang
+         *
+         * и из-за этого первая английская загрузка
+         * вообще не заполнялась переводами.
+         *
+         * Теперь язык хранится отдельно.
+         */
+
+        let currentLanguage = null;
+
+
+        /* =========================================================
+           ОБНОВЛЕНИЕ ТЕКСТА
+        ========================================================== */
+
+        function updateTranslations(lang) {
+
+            const dictionary = translations[lang];
+
+            if (!dictionary) {
+                return;
+            }
+
+
+            /*
+             * ALT фотографии
+             */
+
+            document
+                .querySelectorAll("[data-i18n-alt]")
+                .forEach(element => {
+
+                    const key =
+                        element.dataset.i18nAlt;
+
+                    if (dictionary[key] !== undefined) {
+
+                        element.alt =
+                            dictionary[key];
+
+                    }
+
+                });
+
+
+            /*
+             * Все элементы с data-i18n
+             */
+
+            document
+                .querySelectorAll("[data-i18n]")
+                .forEach(element => {
+
+                    const key =
+                        element.dataset.i18n;
+
+                    if (dictionary[key] !== undefined) {
+
+                        element.textContent =
+                            dictionary[key];
+
+                    }
+
+                });
+        }
+
+
+        /* =========================================================
+           ОБНОВЛЕНИЕ АКТИВНОЙ КНОПКИ
+        ========================================================== */
+
+        function updateLanguageButtons(lang) {
+
+            engButtons.forEach(button => {
+
+                button.classList.toggle(
+                    "active",
+                    lang === "en"
+                );
+
+            });
+
+
+            ruButtons.forEach(button => {
+
+                button.classList.toggle(
+                    "active",
+                    lang === "ru"
+                );
+
+            });
+        }
+
+
+        /* =========================================================
+           ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА
+        ========================================================== */
+
+        function setLanguage(lang, remember = true) {
+
+            /*
+             * Проверяем, существует ли такой язык.
+             */
+
+            if (!translations[lang]) {
+                return;
+            }
+
+
+            /*
+             * Если язык уже установлен — ничего не делаем.
+             *
+             * Но на самой первой загрузке
+             * currentLanguage === null,
+             * поэтому английский тоже нормально загрузится.
+             */
+
+            if (currentLanguage === lang) {
+                return;
+            }
+
+
+            /*
+             * Если это НЕ первая загрузка,
+             * сначала скрываем контент.
+             */
+
+            if (currentLanguage !== null) {
+
+                document.body.classList.add(
+                    "language-changing"
+                );
+
+                /*
+                 * Принудительный reflow.
+                 * Браузер гарантированно применяет
+                 * скрытие перед изменением текста.
+                 */
+
+                void document.body.offsetHeight;
+            }
+
+
+            /*
+             * Меняем язык документа.
+             */
+
+            document.documentElement.lang = lang;
+
+
+            /*
+             * Обновляем кнопки.
+             */
+
+            updateLanguageButtons(lang);
+
+
+            /*
+             * Обновляем весь текст.
+             */
+
+            updateTranslations(lang);
+
+
+            /*
+             * Запоминаем язык.
+             */
+
+            if (remember) {
+
+                localStorage.setItem(
+                    "language",
+                    lang
+                );
+            }
+
+
+            /*
+             * Обновляем текущий язык.
+             */
+
+            currentLanguage = lang;
+
+            /*
+             * Сообщаем скрипту превью (cv-previews.js) о смене языка.
+             */
+
+            document.dispatchEvent(
+                new CustomEvent("cv-language", { detail: lang })
+            );
+
+
+            /*
+             * После первой загрузки ничего дополнительно
+             * показывать не нужно.
+             *
+             * После переключения ждём два кадра,
+             * чтобы браузер успел пересчитать размеры.
+             */
+
+            if (
+                document.body.classList.contains(
+                    "language-changing"
+                )
+            ) {
+
+                requestAnimationFrame(() => {
+
+                    requestAnimationFrame(() => {
+
+                        document.body.classList.remove(
+                            "language-changing"
+                        );
+
+                    });
+
+                });
+
+            }
+
+        }
+
+
+        /* =========================================================
+           ЗАГРУЗКА СОХРАНЁННОГО ЯЗЫКА
+        ========================================================== */
+
+        /*
+         * Язык при первом заходе: если посетитель сам язык ещё не выбирал,
+         * берём язык браузера (системы): русский → ru, любой другой → en.
+         */
+
+        function detectBrowserLanguage() {
+
+            const languages =
+                navigator.languages && navigator.languages.length
+                    ? navigator.languages
+                    : [navigator.language || ""];
+
+            return /^ru(-|$)/i.test(languages[0] || "")
+                ? "ru"
+                : "en";
+        }
+
+        let savedLang =
+            localStorage.getItem("language");
+
+
+        /*
+         * Если в localStorage ничего нет (или там что-то
+         * неправильное) — определяем язык по браузеру.
+         */
+
+        if (
+            savedLang !== "en" &&
+            savedLang !== "ru"
+        ) {
+            savedLang = detectBrowserLanguage();
+        }
+
+
+        /*
+         * Теперь setLanguage НЕ выйдет сразу,
+         * потому что currentLanguage изначально null.
+         *
+         * false — автоопределённый язык не запоминается:
+         * пока посетитель не нажмёт ENG/RU, он определяется
+         * заново при каждом заходе.
+         */
+
+        setLanguage(savedLang, false);
+
+
+        /* =========================================================
+           КНОПКИ ENG
+        ========================================================== */
+
+        engButtons.forEach(button => {
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    setLanguage("en");
+
+                }
+            );
+
+        });
+
+
+        /* =========================================================
+           КНОПКИ RU
+        ========================================================== */
+
+        ruButtons.forEach(button => {
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    setLanguage("ru");
+
+                }
+            );
+
+        });
+
+
+        /* =========================================================
+           ВЫРАВНИВАНИЕ КОНТАКТОВ ПО НИЗУ ФОТО
+        ========================================================== */
+
+        /*
+         * Нижний край блока контактов всегда ставится
+         * по фактическому нижнему краю фотографии.
+         * Размеры измеряются в браузере, поэтому ничего
+         * не нужно подбирать вручную под разные экраны.
+         * Значение top в CSS остаётся запасным вариантом.
+         */
+
+        (function () {
+
+            const imageBlock =
+                document.querySelector(".image-block");
+
+            const contactBlock =
+                document.querySelector(".contact-block");
+
+            if (!imageBlock || !contactBlock) {
+                return;
+            }
+
+            const photo =
+                imageBlock.querySelector("img");
+
+            const anchor =
+                contactBlock.closest(".block-item");
+
+            const row =
+                contactBlock.closest(".blocks-row");
+
+            const compactLayout =
+                window.matchMedia("(max-width: 1300px)");
+
+
+            function alignContacts() {
+
+                /*
+                 * На узких экранах расположение задаёт CSS.
+                 */
+
+                if (compactLayout.matches) {
+                    contactBlock.style.top = "";
+                    return;
+                }
+
+                if (
+                    !anchor ||
+                    !row ||
+                    !contactBlock.offsetHeight
+                ) {
+                    return;
+                }
+
+                const photoBottom =
+                    imageBlock.offsetTop +
+                    imageBlock.offsetHeight;
+
+                const containerTop =
+                    row.offsetTop +
+                    anchor.offsetTop;
+
+                const drop =
+                    parseFloat(
+                        getComputedStyle(document.documentElement)
+                            .getPropertyValue("--contact-drop")
+                    ) || 0;
+
+                contactBlock.style.top =
+                    (
+                        photoBottom -
+                        containerTop -
+                        contactBlock.offsetHeight +
+                        drop
+                    ) + "px";
+            }
+
+
+            let frame = null;
+
+            function scheduleAlign() {
+
+                if (frame !== null) {
+                    return;
+                }
+
+                frame = requestAnimationFrame(() => {
+                    frame = null;
+                    alignContacts();
+                });
+            }
+
+
+            window.addEventListener("resize", scheduleAlign);
+            window.addEventListener("load", scheduleAlign);
+
+            if (photo) {
+                photo.addEventListener("load", scheduleAlign);
+            }
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(scheduleAlign);
+            }
+
+            if (window.ResizeObserver) {
+
+                const observer =
+                    new ResizeObserver(scheduleAlign);
+
+                observer.observe(imageBlock);
+                observer.observe(contactBlock);
+
+                if (row) {
+                    observer.observe(row);
+                }
+            }
+
+            scheduleAlign();
+
+        })();
+
+        /* =========================================================
+           ВЫРАВНИВАНИЕ КОЛОНКИ «ОБУЧЕНИЕ» ПО ПРАВОМУ КРАЮ ФОТО
+        ========================================================== */
+
+        /*
+         * Правый край текста первой колонки всегда ставится
+         * по фактическому правому краю фотографии, какой бы ширины оно ни было.
+         * Значение left у .blocks-row в CSS остаётся запасным.
+         */
+
+        (function () {
+
+            const imageBlock =
+                document.querySelector(".image-block");
+
+            const row =
+                document.querySelector(".blocks-row");
+
+            if (!imageBlock || !row) {
+                return;
+            }
+
+            const firstBlock =
+                row.querySelector(".block-item:nth-child(1)");
+
+            const firstText =
+                firstBlock
+                    ? firstBlock.querySelector(".text-content")
+                    : null;
+
+            const photo =
+                imageBlock.querySelector("img");
+
+            if (!firstBlock || !firstText) {
+                return;
+            }
+
+            const compactLayout =
+                window.matchMedia("(max-width: 1300px)");
+
+
+            function alignEducation() {
+
+                /*
+                 * На узких экранах расположение задаёт CSS.
+                 */
+
+                if (compactLayout.matches) {
+                    row.style.left = "";
+                    return;
+                }
+
+                if (
+                    !imageBlock.offsetWidth ||
+                    !firstBlock.offsetWidth
+                ) {
+                    return;
+                }
+
+                // Правый край фото от левого края страницы
+                const photoRight =
+                    imageBlock.offsetLeft +
+                    imageBlock.offsetWidth;
+
+                // Сколько пикселей от правого края колонки
+                // до правого края самого текста (отступы)
+                const blockRect =
+                    firstBlock.getBoundingClientRect();
+
+                const textRect =
+                    firstText.getBoundingClientRect();
+
+                const textPaddingRight =
+                    parseFloat(
+                        getComputedStyle(firstText).paddingRight
+                    ) || 0;
+
+                const rightInset =
+                    blockRect.right -
+                    (textRect.right - textPaddingRight);
+
+                row.style.left =
+                    (
+                        photoRight -
+                        firstBlock.offsetWidth +
+                        rightInset
+                    ) + "px";
+            }
+
+
+            let frame = null;
+
+            function scheduleAlign() {
+
+                if (frame !== null) {
+                    return;
+                }
+
+                frame = requestAnimationFrame(() => {
+                    frame = null;
+                    alignEducation();
+                });
+            }
+
+
+            window.addEventListener("resize", scheduleAlign);
+            window.addEventListener("load", scheduleAlign);
+
+            if (photo) {
+                photo.addEventListener("load", scheduleAlign);
+            }
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(scheduleAlign);
+            }
+
+            if (window.ResizeObserver) {
+
+                const observer =
+                    new ResizeObserver(scheduleAlign);
+
+                observer.observe(imageBlock);
+                observer.observe(firstBlock);
+            }
+
+            scheduleAlign();
+
+        })();
+
+        /* =========================================================
+           МОБИЛЬНАЯ ВЕРСИЯ: СВОРАЧИВАЕМЫЕ РАЗДЕЛЫ
+        ========================================================= */
+
+        /*
+         * На телефоне (ширина до 768px) нажатие на заголовок
+         * «Образование», «Участие» или «Программы» сворачивает
+         * и разворачивает раздел. На десктопе этот код ничего не делает.
+         */
+
+        (function () {
+
+            // true — на телефоне все разделы сначала свёрнуты, false — развёрнуты
+            const START_COLLAPSED = true;
+
+            const mobile =
+                window.matchMedia("(max-width: 768px)");
+
+            const reduceMotion =
+                window.matchMedia("(prefers-reduced-motion: reduce)");
+
+            const sections = Array.from(
+                document.querySelectorAll(
+                    ".blocks-row > .block-item:not(:nth-child(4)) > .text-content"
+                )
+            ).map(section => ({
+                section: section,
+                heading: section.querySelector(":scope > .text-line.heading")
+            })).filter(item => item.heading);
+
+
+            function isClosed(item) {
+                return item.heading.classList.contains("is-closed");
+            }
+
+
+            // Плавное изменение высоты раздела
+            function animateHeight(section, from, to, done) {
+
+                if (!section.animate || reduceMotion.matches) {
+                    done();
+                    return;
+                }
+
+                section.style.overflow = "hidden";
+
+                const animation = section.animate(
+                    [
+                        { height: from + "px" },
+                        { height: to + "px" }
+                    ],
+                    {
+                        duration: 320,
+                        easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+                    }
+                );
+
+                section._animation = animation;
+
+                animation.onfinish = () => {
+
+                    section.style.overflow = "";
+                    section._animation = null;
+
+                    done();
+                };
+            }
+
+
+            function toggle(item) {
+
+                const section = item.section;
+                const heading = item.heading;
+
+                // Если предыдущая анимация ещё идёт — завершаем её
+                if (section._animation) {
+                    section._animation.finish();
+                }
+
+                const from = section.offsetHeight;
+
+                if (isClosed(item)) {
+
+                    // Разворачиваем
+
+                    heading.classList.remove("is-closed");
+                    section.classList.remove("is-collapsed");
+
+                    heading.setAttribute("aria-expanded", "true");
+
+                    animateHeight(
+                        section,
+                        from,
+                        section.offsetHeight,
+                        () => {}
+                    );
+
+                } else {
+
+                    // Сворачиваем: содержимое скрывается
+                    // только в конце анимации
+
+                    heading.classList.add("is-closed");
+
+                    heading.setAttribute("aria-expanded", "false");
+
+                    animateHeight(
+                        section,
+                        from,
+                        heading.offsetHeight,
+                        () => {
+                            section.classList.add("is-collapsed");
+                        }
+                    );
+                }
+            }
+
+
+            function sync() {
+
+                sections.forEach(item => {
+
+                    const section = item.section;
+                    const heading = item.heading;
+
+                    if (mobile.matches) {
+
+                        heading.setAttribute("role", "button");
+                        heading.setAttribute("tabindex", "0");
+
+                        heading.setAttribute(
+                            "aria-expanded",
+                            isClosed(item) ? "false" : "true"
+                        );
+
+                    } else {
+
+                        // На большом экране всё возвращается к исходному виду
+
+                        heading.removeAttribute("role");
+                        heading.removeAttribute("tabindex");
+                        heading.removeAttribute("aria-expanded");
+
+                        heading.classList.remove("is-closed");
+                        section.classList.remove("is-collapsed");
+
+                        if (section._animation) {
+                            section._animation.cancel();
+                            section._animation = null;
+                        }
+
+                        section.style.overflow = "";
+                    }
+                });
+            }
+
+
+            sections.forEach(item => {
+
+                item.heading.addEventListener("click", () => {
+
+                    if (mobile.matches) {
+                        toggle(item);
+                    }
+                });
+
+                item.heading.addEventListener("keydown", event => {
+
+                    if (!mobile.matches) {
+                        return;
+                    }
+
+                    if (event.key === "Enter" || event.key === " ") {
+
+                        event.preventDefault();
+
+                        toggle(item);
+                    }
                 });
             });
-        });
+
+            // Сворачивает все разделы (без анимации), если так задано настройкой
+            function applyDefaultState() {
+
+                if (!START_COLLAPSED || !mobile.matches) {
+                    return;
+                }
+
+                sections.forEach(item => {
+
+                    item.heading.classList.add("is-closed");
+                    item.section.classList.add("is-collapsed");
+
+                    item.heading.setAttribute("aria-expanded", "false");
+                });
+            }
+
+            // При переходе в мобильный размер (в том числе при изменении
+            // размера окна) разделы снова сворачиваются
+            function onModeChange() {
+
+                sync();
+                applyDefaultState();
+            }
+
+            if (mobile.addEventListener) {
+                mobile.addEventListener("change", onModeChange);
+            } else {
+                mobile.addListener(onModeChange);
+            }
+
+            sync();
+            applyDefaultState();
+
+        })();
+
     </script>
+
+    <script src="cv-previews.js"></script>
 
 </body>
 </html>

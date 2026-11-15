@@ -1,0 +1,233 @@
+/* =========================================================
+   ПРЕВЬЮ ПРОЕКТОВ ПРИ ПРОКРУТКЕ (главная страница)
+   Логика — в файле cv-previews.js.
+   Всё ниже действует только на больших экранах:
+   скрипт добавляет класс cv-scroll на <html>, когда эффект включён.
+========================================================= */
+
+/*
+ * Пока эффект включён, страница не прокручивается обычным способом:
+ * колесо мыши, тач и клавиши обрабатывает скрипт.
+ */
+
+.cv-scroll,
+.cv-scroll body {
+    overflow: hidden;
+}
+
+/*
+ * ФИО при прокрутке уменьшается до ширины блока проектов: сжатие идёт
+ * от правого верхнего угла, чтобы имя оставалось прижатым к правому краю.
+ */
+
+.cv-scroll .name-block {
+    transform-origin: right top;
+}
+
+
+/* ---------------------------------------------------------
+   БЛОКИ «ОБРАЗОВАНИЕ», «ПРОГРАММЫ», «УЧАСТИЕ»
+--------------------------------------------------------- */
+
+/* Подробности исчезают, заголовки остаются и переезжают влево */
+
+.cv-scroll .blocks-row > .block-item:nth-child(-n+3) .text-content > .text-line:not(.heading) {
+    opacity: max(0, calc(1 - var(--cv-p, 0) * 2.4));
+}
+
+.cv-details-off .blocks-row > .block-item:nth-child(-n+3) .text-content > .text-line:not(.heading) {
+    pointer-events: none;
+}
+
+/*
+ * В столбике подчёркивание у всех заголовков одной длины
+ * (как на макете): обычное подчёркивание гаснет,
+ * вместо него проявляется линия во всю ширину столбика.
+ */
+
+.cv-scroll .blocks-row > .block-item:nth-child(-n+3) .text-line.heading {
+    position: relative;
+    text-decoration-color: rgb(136 136 136 / calc(1 - var(--cv-p, 0)));
+}
+
+.cv-scroll .blocks-row > .block-item:nth-child(-n+3) .text-line.heading::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 4px;
+    width: var(--stack-w, 0px);
+    height: 1px;
+    background: #888;
+    opacity: var(--cv-p, 0);
+}
+
+.cv-stacked .blocks-row > .block-item:nth-child(-n+3) .text-line.heading {
+    cursor: pointer;
+}
+
+
+/* ---------------------------------------------------------
+   ПРЕВЬЮ
+--------------------------------------------------------- */
+
+.previews,
+.preview-lines {
+    display: none;
+}
+
+.cv-scroll .previews,
+.cv-scroll .preview-lines {
+    display: block;
+}
+
+.previews {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 3;
+
+    opacity: 0;
+    visibility: hidden;
+}
+
+.previews.visible {
+    visibility: visible;
+}
+
+.previews-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+}
+
+.preview-item {
+    display: block;
+    position: relative;
+
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: var(--preview-gap, 30px);
+
+    background: #999;
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+.previews.interactive .preview-item {
+    pointer-events: auto;
+}
+
+.preview-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.preview-item:hover img,
+.preview-item.is-active img {
+    transform: scale(1.04);
+}
+
+
+/* ---------------------------------------------------------
+   ЛИНИИ ОТ ПРЕВЬЮ К НАЗВАНИЯМ ПРОЕКТОВ
+--------------------------------------------------------- */
+
+.preview-lines {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+    overflow: visible;
+    z-index: 4;
+}
+
+.preview-lines polyline {
+    fill: none;
+    stroke: #555;
+    stroke-width: 1;
+    stroke-linejoin: round;
+    opacity: 0;
+}
+
+
+/* Подсветка названия проекта при наведении на его превью */
+
+.project-link.hover-sync {
+    transform: translateY(-3px) scale(1.1);
+}
+
+
+/* ---------------------------------------------------------
+   СТРЕЛКА «ПРОКРУТИТЕ ВНИЗ»
+   (видна только в исходном состоянии страницы)
+--------------------------------------------------------- */
+
+.cv-arrow {
+    display: none;
+
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 64px;
+    height: 64px;
+    padding: 0;
+
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    border: none;
+    color: #333;
+    cursor: pointer;
+
+    z-index: 50;
+
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.cv-scroll .cv-arrow {
+    display: flex;
+}
+
+.cv-arrow.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.cv-arrow svg {
+    display: block;
+    width: 44px;
+    height: 44px;
+    animation: cvArrowBounce 2s ease-in-out infinite;
+}
+
+.cv-arrow:hover {
+    color: #000;
+}
+
+.cv-arrow:hover svg {
+    animation-play-state: paused;
+}
+
+@keyframes cvArrowBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(12px);
+    }
+}
