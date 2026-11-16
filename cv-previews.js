@@ -24,11 +24,11 @@
     // Картинки превью, по порядку проектов в списке справа.
     // src — основная (для английской версии), srcRu — для русской.
     const PREVIEW_IMAGES = [
+        { src: "slicer/en/slide_6_page-0001.jpg", srcRu: "slicer/ru/slide_6_page-0001.jpg" },
+        { src: "rhino/rhino_2.jpg" },
         { src: "tree_revolution/photo_2024-08-09_23-47-07.jpg" },
         { src: "theatre/theatre_wide.jpg", srcRu: "theatre/ru/theatre_wide.jpg" },
-        { src: "ski_resort/ski_1.jpg", srcRu: "ski_resort/ru/ski_1.jpg" },
-        { src: "rhino/rhino_2.jpg" },
-        { src: "slicer/en/slide_6_page-0001.jpg", srcRu: "slicer/ru/slide_6_page-0001.jpg" }
+        { src: "ski_resort/ski_1.jpg", srcRu: "ski_resort/ru/ski_1.jpg" }
     ];
 
     // Сколько пикселей прокрутки уходит на смену блоков превью
